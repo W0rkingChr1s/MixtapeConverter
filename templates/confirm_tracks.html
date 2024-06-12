@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bestätige erkannte Lieder</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Bestätige erkannte Lieder</h1>
+        <form method="post">
+            {% for track in recognized_tracks %}
+                <div>
+                    <label>
+                        <input type="checkbox" name="tracks" value="{{ track }}" checked>
+                        {{ track }}
+                    </label>
+                </div>
+            {% endfor %}
+            <button type="submit" class="button">Playlist erstellen</button>
+        </form>
+    </div>
+</body>
+</html>

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mixtape Converter</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Erstelle dein Mixtape</h1>
+        <form method="post">
+            <label for="mixtape_name">Mixtape Name:</label>
+            <input type="text" id="mixtape_name" name="mixtape_name" required>
+            
+            <label for="cd_drive">CD-Laufwerk:</label>
+            <select id="cd_drive" name="cd_drive" required>
+                {% for drive in cd_drives %}
+                    <option value="{{ drive }}">{{ drive }}</option>
+                {% endfor %}
+            </select>
+            
+            <button type="submit" class="button">Mixtape Einlesen</button>
+        </form>
+        <form method="get" action="{{ url_for('reload_drives') }}">
+            <button type="submit" class="button">Laufwerke neu laden</button>
+        </form>
+    </div>
+</body>
+</html>
