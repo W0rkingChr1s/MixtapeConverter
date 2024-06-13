@@ -6,6 +6,7 @@
 </head>
 <body>
     <div class="container">
+        <img src="{{ url_for('static', filename='Mixtape-Converter_logo.png') }}" alt="Mixtape Converter Logo" class="logo">
         <h1>Erstelle dein Mixtape</h1>
         <form method="post">
             <label for="mixtape_name">Mixtape Name:</label>
@@ -23,6 +24,7 @@
         <form method="get" action="{{ url_for('reload_drives') }}">
             <button type="submit" class="button">Laufwerke neu laden</button>
         </form>
+        <p><a href="{{ url_for('privacy_notice') }}">Datenschutz- und Einwilligungserklärung</a></p>
     </div>
 </body>
 </html>

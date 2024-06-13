@@ -1,6 +1,6 @@
 body {
-    background-color: #2C2C2C;
-    color: #E0E0E0;
+    background-color: #184D59;
+    color: #B4D9CE;
     font-family: Arial, sans-serif;
     margin: 0;
     display: flex;
@@ -12,19 +12,25 @@ body {
 .container {
     text-align: center;
     padding: 20px;
-    background-color: #3B3B3B;
+    background-color: #308C83;
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    max-width: 800px;
 }
 
-h1 {
-    color: #8BC34A;
+h1, h2 {
+    color: #659FA6;
+}
+
+p, ul {
+    text-align: left;
 }
 
 label {
     display: block;
     margin-top: 10px;
     font-weight: bold;
+    color: #B4D9CE;
 }
 
 input[type="text"], select {
@@ -33,8 +39,8 @@ input[type="text"], select {
     margin-top: 5px;
     border: 1px solid #555;
     border-radius: 5px;
-    background-color: #444;
-    color: #E0E0E0;
+    background-color: #155952;
+    color: #B4D9CE;
 }
 
 button {
@@ -42,14 +48,14 @@ button {
     padding: 10px 20px;
     border: none;
     border-radius: 5px;
-    background-color: #8BC34A;
-    color: #2C2C2C;
+    background-color: #155952;
+    color: #B4D9CE;
     font-weight: bold;
     cursor: pointer;
 }
 
 button:hover {
-    background-color: #7CB342;
+    background-color: #47CCB3;
 }
 
 .button {
@@ -58,13 +64,17 @@ button:hover {
     margin-top: 20px;
     border: none;
     border-radius: 5px;
-    background-color: #8BC34A;
-    color: #2C2C2C;
+    background-color: #155952;
+    color: #B4D9CE;
     font-weight: bold;
     text-decoration: none;
     cursor: pointer;
 }
 
 .button:hover {
-    background-color: #7CB342;
+    background-color: #47CCB3;
+}
+
+.logo {
+    margin-bottom: 20px;
 }

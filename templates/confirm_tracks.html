@@ -6,6 +6,7 @@
 </head>
 <body>
     <div class="container">
+        <img src="{{ url_for('static', filename='Mixtape-Converter_logo.png') }}" alt="Mixtape Converter Logo" class="logo">
         <h1>Bestätige erkannte Lieder</h1>
         <form method="post">
             {% for track in recognized_tracks %}

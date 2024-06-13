@@ -6,8 +6,12 @@
 </head>
 <body>
     <div class="container">
+        <img src="{{ url_for('static', filename='Mixtape-Converter_logo.png') }}" alt="Mixtape Converter Logo" class="logo">
         <h1>Willkommen beim Mixtape Converter</h1>
-        <a class="button" href="{{ url_for('login') }}">Mit Spotify verbinden</a>
+        <a class="button" href="{{ url_for('login', provider='spotify') }}">Mit Spotify verbinden</a>
+        <a class="button" href="{{ url_for('login', provider='apple_music') }}">Mit Apple Music verbinden</a>
+        <a class="button" href="{{ url_for('login', provider='amazon_music') }}">Mit Amazon Music verbinden</a>
+        <p><a href="{{ url_for('privacy_notice') }}">Datenschutz- und Einwilligungserklärung</a></p>
     </div>
 </body>
 </html>
