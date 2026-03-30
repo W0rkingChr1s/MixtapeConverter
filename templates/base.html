@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Mixtape Converter{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+
+  <header class="app-header">
+    <a href="{{ url_for('index') }}" class="header-logo-link">
+      <img src="{{ url_for('static', filename='Mixtape-Converter_logo.png') }}"
+           alt="Mixtape Converter" class="header-logo">
+    </a>
+    {% if session.get('provider') %}
+    <nav class="header-nav">
+      <span class="provider-badge provider-{{ session.get('provider') }}">
+        {% if session.get('provider') == 'spotify' %}Spotify
+        {% elif session.get('provider') == 'apple_music' %}Apple Music
+        {% elif session.get('provider') == 'amazon_music' %}Amazon Music
+        {% endif %}
+      </span>
+      <a href="{{ url_for('flow_select') }}" class="nav-link">Flow wählen</a>
+      <a href="{{ url_for('logout') }}" class="nav-link nav-link-logout">Abmelden</a>
+    </nav>
+    {% endif %}
+  </header>
+
+  <main class="main-content">
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-list">
+          {% for category, message in messages %}
+            <div class="flash flash-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+
+  </main>
+
+  <footer class="app-footer">
+    <a href="{{ url_for('privacy_notice') }}">Datenschutzerklärung</a>
+  </footer>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>

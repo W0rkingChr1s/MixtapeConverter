@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anmeldung läuft… – Mixtape Converter</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<header class="app-header">
+  <a href="index.html">
+    <img src="static/Mixtape-Converter_logo.png" alt="Mixtape Converter" class="header-logo">
+  </a>
+</header>
+
+<main class="main-content">
+  <div class="card card-center">
+    <div id="spinner" class="spinner"></div>
+    <h1 id="msg">Anmeldung wird abgeschlossen…</h1>
+    <p id="sub" class="subtitle"></p>
+  </div>
+</main>
+
+<script src="js/config.js"></script>
+<script src="js/state.js"></script>
+<script src="js/spotify.js"></script>
+<script>
+  (async () => {
+    const params = new URLSearchParams(window.location.search);
+    const code   = params.get('code');
+    const error  = params.get('error');
+
+    if (error) {
+      document.getElementById('spinner').style.display = 'none';
+      document.getElementById('msg').textContent = 'Anmeldung fehlgeschlagen';
+      document.getElementById('sub').textContent = error;
+      setTimeout(() => window.location.href = 'index.html', 2500);
+      return;
+    }
+
+    if (!code) {
+      window.location.href = 'index.html';
+      return;
+    }
+
+    const ok = await handleSpotifyCallback(code);
+    if (ok) {
+      document.getElementById('msg').textContent = 'Erfolgreich angemeldet!';
+      window.location.href = 'flow.html';
+    } else {
+      document.getElementById('spinner').style.display = 'none';
+      document.getElementById('msg').textContent = 'Token-Fehler';
+      document.getElementById('sub').textContent = 'Bitte erneut versuchen.';
+      setTimeout(() => window.location.href = 'index.html', 2500);
+    }
+  })();
+</script>
+</body>
+</html>
