@@ -8,13 +8,14 @@ from flask import (
     Flask, session, redirect, request,
     url_for, render_template, jsonify, flash,
 )
+from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
 
 load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-change-me')
-app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50 MB
+app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024  # 500 MB (full CD als WAV)
 
 BASE_DIR = os.path.dirname(__file__)
 UPLOAD_FOLDER = os.path.join(BASE_DIR, 'uploads')
@@ -93,16 +94,21 @@ def flow_select():
     return render_template('flow_select.html', provider=session.get('provider'))
 
 
-# ── Flow: CD ─────────────────────────────────────────────────────────────────
+# ── Flow: Audio-Erkennung (ehemals CD) ───────────────────────────────────────
+
+_AUDIO_EXT = {'mp3', 'wav', 'flac', 'm4a', 'aac', 'ogg', 'wma', 'opus'}
+
+
+def _allowed_audio(filename: str) -> bool:
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in _AUDIO_EXT
+
 
 @app.route('/flow/cd')
 def cd_flow():
     guard = _require_auth()
     if guard:
         return guard
-    from services.cd_service import get_cd_drives
-    drives = get_cd_drives()
-    return render_template('cd_flow.html', drives=drives)
+    return render_template('cd_flow.html')
 
 
 @app.route('/flow/cd/start', methods=['POST'])
@@ -110,32 +116,37 @@ def cd_start():
     if not _is_authenticated():
         return jsonify({'error': 'Nicht eingeloggt'}), 401
 
-    drive = request.form.get('drive', '').strip()
-    if not drive:
-        return jsonify({'error': 'Kein Laufwerk ausgewählt'}), 400
+    uploaded = request.files.getlist('audio_files')
+    valid_files = [f for f in uploaded if f.filename and _allowed_audio(f.filename)]
+
+    if not valid_files:
+        return jsonify({'error': 'Keine gültigen Audiodateien hochgeladen (MP3, WAV, FLAC, …)'}), 400
 
     job_id = str(uuid.uuid4())
-    _jobs[job_id] = {'status': 'ripping', 'tracks': None, 'error': None, 'total': 0, 'done_count': 0}
+    tmp_dir = os.path.join(TMP_FOLDER, job_id)
+    os.makedirs(tmp_dir, exist_ok=True)
 
-    def run_job(jid, dev):
+    # Save files synchronously before spawning background thread
+    saved = []
+    for f in valid_files:
+        dest = os.path.join(tmp_dir, secure_filename(f.filename))
+        f.save(dest)
+        saved.append(dest)
+
+    _jobs[job_id] = {'status': 'recognizing', 'tracks': None, 'error': None,
+                     'total': len(saved), 'done_count': 0}
+
+    def run_job(jid, files):
         try:
-            from services.cd_service import rip_cd, recognize_tracks
-            tmp_dir = os.path.join(TMP_FOLDER, jid)
-            os.makedirs(tmp_dir, exist_ok=True)
-
-            wav_files = rip_cd(dev, tmp_dir)
-            if not wav_files:
-                _jobs[jid].update(status='error', error='Keine Tracks auf der CD gefunden.')
-                return
-
-            _jobs[jid].update(status='recognizing', total=len(wav_files))
-            tracks = recognize_tracks(wav_files, progress_cb=lambda n: _jobs[jid].update(done_count=n))
+            from services.cd_service import recognize_tracks
+            tracks = recognize_tracks(files, progress_cb=lambda n: _jobs[jid].update(done_count=n))
             _jobs[jid].update(status='done', tracks=tracks)
-            shutil.rmtree(tmp_dir, ignore_errors=True)
         except Exception as exc:
             _jobs[jid].update(status='error', error=str(exc))
+        finally:
+            shutil.rmtree(os.path.join(TMP_FOLDER, jid), ignore_errors=True)
 
-    threading.Thread(target=run_job, args=(job_id, drive), daemon=True).start()
+    threading.Thread(target=run_job, args=(job_id, saved), daemon=True).start()
     return jsonify({'job_id': job_id})
 
 
@@ -319,4 +330,6 @@ def privacy_notice():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    port = int(os.environ.get('PORT', 5000))
+    debug = os.environ.get('FLASK_ENV') == 'development'
+    app.run(host='0.0.0.0', port=port, debug=debug)
