@@ -1,0 +1,16 @@
+{
+  "name": "mixtape-converter",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Convert CD collections into streaming playlists – runs entirely in the browser",
+  "scripts": {
+    "lint": "eslint js/",
+    "lint:fix": "eslint js/ --fix",
+    "validate": "html-validate index.html callback.html flow.html audio.html manual.html ocr.html confirm.html success.html privacy.html"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "eslint": "^9.17.0",
+    "html-validate": "^9.7.0"
+  }
+}
