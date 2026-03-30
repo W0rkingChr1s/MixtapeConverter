@@ -1,14 +1,50 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Erfolg</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-</head>
-<body>
-    <div class="container">
-        <img src="{{ url_for('static', filename='Mixtape-Converter_logo.png') }}" alt="Mixtape Converter Logo" class="logo">
-        <h1>Erfolg!</h1>
-        <p>Die Playlist '{{ playlist_name }}' wurde erfolgreich erstellt!</p>
+{% extends "base.html" %}
+
+{% block title %}Playlist erstellt!{% endblock %}
+
+{% block content %}
+<div class="card card-center">
+  <div class="success-icon">&#10003;</div>
+  <h1>Playlist erstellt!</h1>
+  <p class="subtitle">
+    <strong>„{{ playlist_name }}"</strong> wurde erfolgreich angelegt.
+  </p>
+
+  {% if result %}
+    <div class="result-stats">
+      <div class="stat">
+        <span class="stat-num">{{ result.tracks_added }}</span>
+        <span class="stat-label">Tracks hinzugefügt</span>
+      </div>
+      {% if result.not_found %}
+      <div class="stat stat-warn">
+        <span class="stat-num">{{ result.not_found|length }}</span>
+        <span class="stat-label">nicht gefunden</span>
+      </div>
+      {% endif %}
     </div>
-</body>
-</html>
+
+    {% if result.not_found %}
+    <details class="not-found-details">
+      <summary>Nicht gefundene Tracks ({{ result.not_found|length }})</summary>
+      <ul>
+        {% for t in result.not_found %}
+          <li>{{ t }}</li>
+        {% endfor %}
+      </ul>
+    </details>
+    {% endif %}
+
+    {% if result.playlist_url %}
+    <a href="{{ result.playlist_url }}" target="_blank" rel="noopener" class="btn btn-primary">
+      Playlist öffnen &#8599;
+    </a>
+    {% endif %}
+  {% endif %}
+
+  <div class="success-actions">
+    <a href="{{ url_for('flow_select') }}" class="btn btn-secondary">Neue Playlist erstellen</a>
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">Zurück zum Start</a>
+  </div>
+</div>
+{% endblock %}

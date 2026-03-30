@@ -1,0 +1,25 @@
+# Credentials - NEVER commit
+.env
+*.p8
+*.pem
+
+# Temp files
+uploads/
+tmp/
+ripped_tracks/
+temp_track_*.wav
+__pycache__/
+*.pyc
+*.pyo
+
+# Cache
+.cache
+.spotify_cache*
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

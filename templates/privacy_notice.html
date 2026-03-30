@@ -1,48 +1,35 @@
-<!DOCTYPE html>
-<html lang="de">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Datenschutz- und Einwilligungserklärung</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-</head>
-<body>
-    <div class="container">
-        <h1>Datenschutz- und Einwilligungserklärung</h1>
-        <p>Willkommen bei Mixtape Converter. Wir nehmen den Schutz Ihrer Daten sehr ernst. Diese Datenschutz- und Einwilligungserklärung erklärt, welche Daten wir erheben, wie wir sie verwenden und wie wir Ihre Daten schützen.</p>
+{% extends "base.html" %}
 
-        <h2>Welche Daten wir erheben</h2>
-        <ul>
-            <li>Persönliche Informationen wie Name und E-Mail-Adresse, die Sie uns bei der Registrierung zur Verfügung stellen.</li>
-            <li>Nutzungsdaten wie Informationen über die von Ihnen erstellten Mixtapes und Ihre Nutzung unserer Dienste.</li>
-            <li>Technische Daten wie IP-Adressen und Informationen über das von Ihnen verwendete Gerät.</li>
-        </ul>
+{% block title %}Datenschutzerklärung{% endblock %}
 
-        <h2>Wie wir Ihre Daten verwenden</h2>
-        <ul>
-            <li>Um Ihnen unsere Dienste bereitzustellen und zu verbessern.</li>
-            <li>Um Ihre Mixtapes zu speichern und Ihnen zu ermöglichen, Playlists auf verschiedenen Musik-Streaming-Diensten zu erstellen.</li>
-            <li>Um Ihnen technische Unterstützung zu bieten und auf Ihre Anfragen zu antworten.</li>
-            <li>Um rechtliche Verpflichtungen zu erfüllen.</li>
-        </ul>
+{% block content %}
+<div class="card">
+  <h1>Datenschutz- und Einwilligungserklärung</h1>
+  <p>Willkommen bei Mixtape Converter. Wir nehmen den Schutz Ihrer Daten sehr ernst.</p>
 
-        <h2>Wie wir Ihre Daten schützen</h2>
-        <p>Wir ergreifen angemessene technische und organisatorische Maßnahmen, um Ihre Daten vor unbefugtem Zugriff, Verlust oder Missbrauch zu schützen. Ihre Daten werden sicher gespeichert und nur für die in dieser Erklärung genannten Zwecke verwendet.</p>
+  <h2>Welche Daten wir erheben</h2>
+  <ul>
+    <li>Zugangsdaten des gewählten Streaming-Dienstes (OAuth-Token), die nur für die Dauer der Sitzung im Arbeitsspeicher gehalten werden.</li>
+    <li>Hochgeladene Dateien (Fotos, PDFs) werden nach der OCR-Verarbeitung sofort gelöscht.</li>
+    <li>Technische Daten (IP-Adressen, Browser-Informationen) aus dem Server-Log.</li>
+  </ul>
 
-        <h2>Ihre Rechte</h2>
-        <p>Sie haben das Recht, auf Ihre personenbezogenen Daten zuzugreifen, sie zu korrigieren oder zu löschen. Sie können Ihre Einwilligung zur Datenverarbeitung jederzeit widerrufen. Wenn Sie Fragen oder Bedenken bezüglich unserer Datenschutzpraktiken haben, kontaktieren Sie uns bitte unter <a href="mailto:privacy@mixtapeconverter.com">privacy@mixtapeconverter.com</a>.</p>
+  <h2>Wie wir Ihre Daten verwenden</h2>
+  <ul>
+    <li>Bereitstellung des Dienstes: Trackerkennung und Playlist-Erstellung beim gewählten Streaming-Dienst.</li>
+    <li>Keine dauerhafte Speicherung personenbezogener Daten nach Sitzungsende.</li>
+    <li>Keine Weitergabe an Dritte, außer den vom Nutzer gewählten Streaming-Diensten (Spotify, Apple Music, Amazon Music).</li>
+  </ul>
 
-        <h2>Einwilligung</h2>
-        <p>Durch die Nutzung unserer Dienste und die Erstellung eines Kontos erklären Sie sich mit der Erhebung, Verwendung und Speicherung Ihrer Daten gemäß dieser Datenschutz- und Einwilligungserklärung einverstanden.</p>
+  <h2>Ihre Rechte</h2>
+  <p>
+    Sie haben das Recht auf Auskunft, Berichtigung und Löschung Ihrer Daten.
+    Fragen richten Sie bitte an:
+    <a href="mailto:privacy@mixtapeconverter.com">privacy@mixtapeconverter.com</a>
+  </p>
 
-        <button onclick="acceptPrivacyNotice()">Ich stimme zu</button>
-    </div>
-
-    <script>
-        function acceptPrivacyNotice() {
-            alert('Vielen Dank, dass Sie unsere Datenschutz- und Einwilligungserklärung akzeptieren.');
-            window.location.href = '{{ url_for("index") }}';  // Redirect to the main application page
-        }
-    </script>
-</body>
-</html>
+  <div class="form-actions" style="margin-top:2rem">
+    <a href="{{ url_for('index') }}" class="btn btn-primary">Zurück zur Startseite</a>
+  </div>
+</div>
+{% endblock %}

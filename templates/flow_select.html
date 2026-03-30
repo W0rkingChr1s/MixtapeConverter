@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Eingabemethode wählen{% endblock %}
+
+{% block content %}
+<div class="card card-center">
+  <h1>Wie möchtest du deine Tracks eingeben?</h1>
+  <p class="subtitle">Wähle eine der folgenden Methoden.</p>
+
+  <div class="flow-grid">
+
+    <a href="{{ url_for('cd_flow') }}" class="flow-card">
+      <div class="flow-icon">&#128191;</div>
+      <h2>CD einlesen</h2>
+      <p>Tracks automatisch per Shazam von einer Audio-CD erkennen lassen.</p>
+    </a>
+
+    <a href="{{ url_for('manual_flow') }}" class="flow-card">
+      <div class="flow-icon">&#9998;</div>
+      <h2>Manuell eingeben</h2>
+      <p>Trackliste selbst eintippen oder eine TXT-Datei hochladen.</p>
+    </a>
+
+    <a href="{{ url_for('ocr_flow') }}" class="flow-card">
+      <div class="flow-icon">&#128247;</div>
+      <h2>Booklet / Foto scannen</h2>
+      <p>Foto oder PDF-Scan eines CD-Booklets hochladen – Texterkennung (OCR) erledigt den Rest.</p>
+    </a>
+
+  </div>
+</div>
+{% endblock %}

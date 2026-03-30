@@ -1,24 +1,110 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Bestätige erkannte Lieder</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-</head>
-<body>
-    <div class="container">
-        <img src="{{ url_for('static', filename='Mixtape-Converter_logo.png') }}" alt="Mixtape Converter Logo" class="logo">
-        <h1>Bestätige erkannte Lieder</h1>
-        <form method="post">
-            {% for track in recognized_tracks %}
-                <div>
-                    <label>
-                        <input type="checkbox" name="tracks" value="{{ track }}" checked>
-                        {{ track }}
-                    </label>
-                </div>
-            {% endfor %}
-            <button type="submit" class="button">Playlist erstellen</button>
-        </form>
+{% extends "base.html" %}
+
+{% block title %}Tracks bestätigen{% endblock %}
+
+{% block content %}
+<div class="card card-wide">
+  <h1>Tracks bestätigen &amp; Playlist erstellen</h1>
+  <p class="subtitle">
+    Überprüfe die Trackliste. Du kannst Einträge bearbeiten, löschen oder neue hinzufügen.
+  </p>
+
+  <form method="POST" action="{{ url_for('create_playlist') }}" id="confirm-form">
+
+    <div class="form-row">
+      <label for="playlist_name">Playlist-Name</label>
+      <input type="text" id="playlist_name" name="playlist_name"
+             placeholder="Mein Mixtape" required>
     </div>
-</body>
-</html>
+
+    <div class="track-list-header">
+      <span>{{ tracks|length }} Tracks</span>
+      <button type="button" id="add-track-btn" class="btn btn-small">+ Track hinzufügen</button>
+    </div>
+
+    <ul class="track-list" id="track-list">
+      {% for track in tracks %}
+      <li class="track-item" draggable="true">
+        <span class="drag-handle">&#9776;</span>
+        <input type="text" name="tracks" value="{{ track }}" class="track-input">
+        <button type="button" class="btn-icon delete-btn" title="Löschen">&#10005;</button>
+      </li>
+      {% endfor %}
+    </ul>
+
+    <div class="form-actions">
+      <a href="{{ url_for('flow_select') }}" class="btn btn-secondary">Zurück</a>
+      <button type="submit" class="btn btn-primary">
+        Playlist bei
+        {% if provider == 'spotify' %}Spotify{% elif provider == 'apple_music' %}Apple Music{% else %}{{ provider }}{% endif %}
+        erstellen
+      </button>
+    </div>
+
+  </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const list = document.getElementById('track-list');
+  const counter = document.querySelector('.track-list-header span');
+
+  function updateCounter() {
+    const n = list.querySelectorAll('.track-item').length;
+    counter.textContent = n + ' Track' + (n === 1 ? '' : 's');
+  }
+
+  function makeItem(value) {
+    const li = document.createElement('li');
+    li.className = 'track-item';
+    li.draggable = true;
+    li.innerHTML = `
+      <span class="drag-handle">&#9776;</span>
+      <input type="text" name="tracks" value="${value}" class="track-input">
+      <button type="button" class="btn-icon delete-btn" title="Löschen">&#10005;</button>
+    `;
+    bindDelete(li.querySelector('.delete-btn'));
+    return li;
+  }
+
+  function bindDelete(btn) {
+    btn.addEventListener('click', () => {
+      btn.closest('.track-item').remove();
+      updateCounter();
+    });
+  }
+
+  // Bind existing delete buttons
+  list.querySelectorAll('.delete-btn').forEach(bindDelete);
+
+  // Add track
+  document.getElementById('add-track-btn').addEventListener('click', () => {
+    const li = makeItem('');
+    list.appendChild(li);
+    li.querySelector('.track-input').focus();
+    updateCounter();
+  });
+
+  // Drag-and-drop reordering
+  let dragged = null;
+
+  list.addEventListener('dragstart', e => {
+    dragged = e.target.closest('.track-item');
+    dragged.classList.add('dragging');
+  });
+  list.addEventListener('dragend', e => {
+    dragged.classList.remove('dragging');
+    dragged = null;
+  });
+  list.addEventListener('dragover', e => {
+    e.preventDefault();
+    const target = e.target.closest('.track-item');
+    if (target && target !== dragged) {
+      const rect = target.getBoundingClientRect();
+      const after = e.clientY > rect.top + rect.height / 2;
+      list.insertBefore(dragged, after ? target.nextSibling : target);
+    }
+  });
+</script>
+{% endblock %}

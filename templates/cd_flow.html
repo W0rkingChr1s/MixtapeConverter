@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}CD einlesen{% endblock %}
+
+{% block content %}
+<div class="card">
+  <h1>CD einlesen</h1>
+
+  {% if drives %}
+    <p>Erkanntes Laufwerk auswählen und CD einlesen starten.</p>
+
+    <form id="cd-form">
+      <label for="drive">CD-Laufwerk</label>
+      <select id="drive" name="drive">
+        {% for d in drives %}
+          <option value="{{ d.device }}">{{ d.device }} ({{ d.mountpoint }})</option>
+        {% endfor %}
+      </select>
+
+      <button type="button" id="start-btn" class="btn btn-primary">
+        Einlesen starten
+      </button>
+    </form>
+
+  {% else %}
+    <div class="empty-state">
+      <p>&#128191; Kein CD-Laufwerk erkannt.</p>
+      <p>Bitte CD einlegen und die Seite neu laden.</p>
+      <a href="{{ url_for('cd_flow') }}" class="btn btn-secondary">Neu laden</a>
+    </div>
+  {% endif %}
+
+  <!-- Progress area (hidden until job starts) -->
+  <div id="progress-area" class="progress-area hidden">
+    <div id="status-msg" class="status-msg">Wird vorbereitet …</div>
+    <div class="progress-bar-outer">
+      <div id="progress-bar" class="progress-bar-inner" style="width:0%"></div>
+    </div>
+    <div id="progress-label" class="progress-label"></div>
+  </div>
+
+  <!-- Hidden form used to submit job_id to /flow/cd/finish -->
+  <form id="finish-form" method="POST" action="{{ url_for('cd_finish') }}">
+    <input type="hidden" id="job-id-input" name="job_id" value="">
+  </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const startBtn = document.getElementById('start-btn');
+  const progressArea = document.getElementById('progress-area');
+  const statusMsg = document.getElementById('status-msg');
+  const progressBar = document.getElementById('progress-bar');
+  const progressLabel = document.getElementById('progress-label');
+  const finishForm = document.getElementById('finish-form');
+  const jobIdInput = document.getElementById('job-id-input');
+
+  if (startBtn) {
+    startBtn.addEventListener('click', async () => {
+      const drive = document.getElementById('drive').value;
+      startBtn.disabled = true;
+      progressArea.classList.remove('hidden');
+      statusMsg.textContent = 'Starte CD-Erkennung …';
+
+      const resp = await fetch('{{ url_for("cd_start") }}', {
+        method: 'POST',
+        body: new URLSearchParams({ drive }),
+      });
+      const { job_id, error } = await resp.json();
+      if (error) { statusMsg.textContent = 'Fehler: ' + error; return; }
+
+      jobIdInput.value = job_id;
+      pollStatus(job_id);
+    });
+  }
+
+  async function pollStatus(jobId) {
+    const resp = await fetch(`/flow/cd/status/${jobId}`);
+    const job = await resp.json();
+
+    if (job.status === 'ripping') {
+      statusMsg.textContent = 'Tracks werden von CD gelesen …';
+      progressBar.style.width = '20%';
+    } else if (job.status === 'recognizing') {
+      const pct = job.total ? Math.round((job.done_count / job.total) * 80) + 20 : 20;
+      statusMsg.textContent = `Shazam-Erkennung: ${job.done_count} / ${job.total} Tracks …`;
+      progressBar.style.width = pct + '%';
+      progressLabel.textContent = `${job.done_count} von ${job.total}`;
+    } else if (job.status === 'done') {
+      progressBar.style.width = '100%';
+      statusMsg.textContent = `Fertig! ${job.tracks.length} Tracks erkannt.`;
+      progressLabel.textContent = '';
+      setTimeout(() => finishForm.submit(), 800);
+      return;
+    } else if (job.status === 'error') {
+      statusMsg.textContent = 'Fehler: ' + job.error;
+      startBtn.disabled = false;
+      return;
+    }
+
+    setTimeout(() => pollStatus(jobId), 2000);
+  }
+</script>
+{% endblock %}

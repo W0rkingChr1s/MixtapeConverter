@@ -1,0 +1,12 @@
+flask>=3.0
+python-dotenv
+spotipy
+shazamio
+pydub
+psutil
+pytesseract
+Pillow
+pdfplumber
+pdf2image
+requests
+PyJWT
