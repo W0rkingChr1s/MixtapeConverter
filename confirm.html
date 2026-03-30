@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tracks bestätigen – Mixtape Converter</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<header class="app-header">
+  <a href="index.html"><img src="static/Mixtape-Converter_logo.png" alt="Mixtape Converter" class="header-logo"></a>
+  <nav class="header-nav">
+    <span class="provider-badge">Spotify</span>
+    <a href="flow.html" class="nav-link">Zurück</a>
+  </nav>
+</header>
+
+<main class="main-content">
+  <div class="card card-wide">
+    <h1>Tracks bestätigen &amp; Playlist erstellen</h1>
+    <p class="subtitle">Bearbeite, lösche oder ergänze Tracks. Dann Playlist-Namen vergeben und erstellen.</p>
+
+    <div class="form-row">
+      <label for="playlist-name">Playlist-Name</label>
+      <input type="text" id="playlist-name" placeholder="Mein Mixtape" required>
+    </div>
+
+    <div class="track-list-header">
+      <span id="track-count">0 Tracks</span>
+      <button class="btn btn-small" onclick="addTrack()">+ Track hinzufügen</button>
+    </div>
+
+    <ul class="track-list" id="track-list"></ul>
+
+    <div id="progress-area" class="progress-area hidden">
+      <div id="status-msg" class="status-msg">Playlist wird erstellt…</div>
+      <div class="progress-bar-outer">
+        <div id="prog-bar" class="progress-bar-inner" style="width:0%"></div>
+      </div>
+      <div id="prog-label" class="progress-label"></div>
+    </div>
+
+    <div id="error-msg" class="flash flash-error hidden" style="margin-top:1rem"></div>
+
+    <div class="form-actions">
+      <a href="flow.html" class="btn btn-secondary">Zurück</a>
+      <button id="create-btn" class="btn btn-primary" onclick="createPlaylist()">
+        Playlist bei Spotify erstellen
+      </button>
+    </div>
+  </div>
+</main>
+
+<footer class="app-footer"><a href="privacy.html">Datenschutzerklärung</a></footer>
+
+<script src="js/config.js"></script>
+<script src="js/state.js"></script>
+<script src="js/spotify.js"></script>
+<script>
+  requireAuth();
+
+  const trackList  = document.getElementById('track-list');
+  const countEl    = document.getElementById('track-count');
+  const progArea   = document.getElementById('progress-area');
+  const statusMsg  = document.getElementById('status-msg');
+  const progBar    = document.getElementById('prog-bar');
+  const progLabel  = document.getElementById('prog-label');
+  const errorMsg   = document.getElementById('error-msg');
+  const createBtn  = document.getElementById('create-btn');
+
+  function updateCount() {
+    const n = trackList.querySelectorAll('.track-item').length;
+    countEl.textContent = n + ' Track' + (n === 1 ? '' : 's');
+  }
+
+  function makeItem(value) {
+    const li = document.createElement('li');
+    li.className = 'track-item';
+    li.draggable = true;
+    li.innerHTML = `
+      <span class="drag-handle">&#9776;</span>
+      <input type="text" class="track-input" value="${value.replace(/"/g, '&quot;')}">
+      <button class="btn-icon" title="Löschen" onclick="this.closest('.track-item').remove(); updateCount();">&#10005;</button>`;
+    return li;
+  }
+
+  function addTrack(value = '') {
+    const li = makeItem(value);
+    trackList.appendChild(li);
+    li.querySelector('.track-input').focus();
+    updateCount();
+  }
+
+  // Load tracks from state
+  const saved = State.get('tracks') || [];
+  saved.forEach(t => trackList.appendChild(makeItem(t)));
+  updateCount();
+
+  // Drag-and-drop reorder
+  let dragged = null;
+  trackList.addEventListener('dragstart', e => { dragged = e.target.closest('.track-item'); dragged.classList.add('dragging'); });
+  trackList.addEventListener('dragend',   () => { dragged.classList.remove('dragging'); dragged = null; });
+  trackList.addEventListener('dragover',  e => {
+    e.preventDefault();
+    const target = e.target.closest('.track-item');
+    if (target && target !== dragged) {
+      const after = e.clientY > target.getBoundingClientRect().top + target.offsetHeight / 2;
+      trackList.insertBefore(dragged, after ? target.nextSibling : target);
+    }
+  });
+
+  async function createPlaylist() {
+    const name = document.getElementById('playlist-name').value.trim();
+    if (!name) {
+      document.getElementById('playlist-name').focus();
+      return;
+    }
+
+    const tracks = Array.from(trackList.querySelectorAll('.track-input'))
+      .map(i => i.value.trim()).filter(Boolean);
+
+    if (!tracks.length) {
+      errorMsg.textContent = 'Keine Tracks vorhanden.';
+      errorMsg.classList.remove('hidden');
+      return;
+    }
+
+    createBtn.disabled = true;
+    errorMsg.classList.add('hidden');
+    progArea.classList.remove('hidden');
+    statusMsg.textContent = 'Playlist wird bei Spotify angelegt…';
+    progBar.style.width = '5%';
+
+    try {
+      const result = await createSpotifyPlaylist(name, tracks, (done, total) => {
+        const pct = Math.round(5 + (done / total) * 90);
+        progBar.style.width = pct + '%';
+        statusMsg.textContent = `Suche Track ${done} von ${total}…`;
+        progLabel.textContent = `${done} / ${total}`;
+      });
+
+      progBar.style.width = '100%';
+      statusMsg.textContent = 'Fertig!';
+
+      State.set('result', result);
+      State.set('playlist_name', name);
+      setTimeout(() => window.location.href = 'success.html', 400);
+
+    } catch (err) {
+      errorMsg.textContent = 'Fehler: ' + err.message;
+      errorMsg.classList.remove('hidden');
+      createBtn.disabled = false;
+      progArea.classList.add('hidden');
+    }
+  }
+</script>
+</body>
+</html>

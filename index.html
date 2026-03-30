@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mixtape Converter</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<header class="app-header">
+  <img src="static/Mixtape-Converter_logo.png" alt="Mixtape Converter" class="header-logo">
+</header>
+
+<main class="main-content">
+  <div class="card card-center">
+    <h1>Mixtape Converter</h1>
+    <p class="subtitle">Verbinde dich mit deinem Streaming-Dienst, um loszulegen.</p>
+
+    <div class="provider-grid">
+
+      <button class="provider-card spotify" onclick="startSpotifyLogin()">
+        <span class="provider-icon">&#9654;</span>
+        <span class="provider-name">Spotify</span>
+      </button>
+
+      <button class="provider-card apple" disabled>
+        <span class="provider-icon">&#9835;</span>
+        <span class="provider-name">Apple Music</span>
+        <span class="coming-soon">Demnächst</span>
+      </button>
+
+      <button class="provider-card amazon" disabled>
+        <span class="provider-icon">&#9836;</span>
+        <span class="provider-name">Amazon Music</span>
+        <span class="coming-soon">Demnächst</span>
+      </button>
+
+    </div>
+
+    <p class="footer-hint">
+      <a href="privacy.html">Datenschutzerklärung</a>
+    </p>
+  </div>
+</main>
+
+<footer class="app-footer">
+  <a href="privacy.html">Datenschutzerklärung</a>
+</footer>
+
+<script src="js/config.js"></script>
+<script src="js/state.js"></script>
+<script src="js/spotify.js"></script>
+</body>
+</html>

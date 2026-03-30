@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eingabemethode – Mixtape Converter</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<header class="app-header">
+  <a href="index.html">
+    <img src="static/Mixtape-Converter_logo.png" alt="Mixtape Converter" class="header-logo">
+  </a>
+  <nav class="header-nav">
+    <span class="provider-badge">Spotify</span>
+    <button class="nav-link nav-link-logout" onclick="State.clear(); window.location.href='index.html'">
+      Abmelden
+    </button>
+  </nav>
+</header>
+
+<main class="main-content">
+  <div class="card card-center" style="max-width:700px">
+    <h1>Wie möchtest du deine Tracks eingeben?</h1>
+
+    <div class="flow-grid">
+
+      <a href="audio.html" class="flow-card">
+        <div class="flow-icon">&#127925;</div>
+        <h2>Audio-Dateien</h2>
+        <p>Rip deine CD und lade die Dateien hoch – ID3-Tags werden automatisch ausgelesen.</p>
+      </a>
+
+      <a href="manual.html" class="flow-card">
+        <div class="flow-icon">&#9998;</div>
+        <h2>Manuell eingeben</h2>
+        <p>Trackliste selbst eintippen oder eine TXT-Datei hochladen.</p>
+      </a>
+
+      <a href="ocr.html" class="flow-card">
+        <div class="flow-icon">&#128247;</div>
+        <h2>Booklet / Foto</h2>
+        <p>Foto oder PDF-Scan eines CD-Booklets hochladen – OCR erledigt den Rest.</p>
+      </a>
+
+    </div>
+  </div>
+</main>
+
+<footer class="app-footer">
+  <a href="privacy.html">Datenschutzerklärung</a>
+</footer>
+
+<script src="js/config.js"></script>
+<script src="js/state.js"></script>
+<script src="js/spotify.js"></script>
+<script>requireAuth();</script>
+</body>
+</html>
