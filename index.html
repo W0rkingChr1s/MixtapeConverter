@@ -4,9 +4,25 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mixtape Converter</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=VT323&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
+
+<div class="ticker-bar" aria-hidden="true">
+  <div class="ticker-inner">
+    <span>★ MIXTAPE CONVERTER ★</span>
+    <span>◈ CONVERT YOUR CD COLLECTION ◈</span>
+    <span>★ SPOTIFY PLAYLIST GENERATOR ★</span>
+    <span>◈ OCR · AUDIO · MANUAL INPUT ◈</span>
+    <span>★ MIXTAPE CONVERTER ★</span>
+    <span>◈ CONVERT YOUR CD COLLECTION ◈</span>
+    <span>★ SPOTIFY PLAYLIST GENERATOR ★</span>
+    <span>◈ OCR · AUDIO · MANUAL INPUT ◈</span>
+  </div>
+</div>
 
 <header class="app-header">
   <img src="static/Mixtape-Converter_logo.png" alt="Mixtape Converter" class="header-logo">
@@ -14,24 +30,24 @@
 
 <main class="main-content">
   <div class="card card-center">
-    <h1>Mixtape Converter</h1>
+    <h1>MIXTAPE<br>CONVERTER</h1>
     <p class="subtitle">Verbinde dich mit deinem Streaming-Dienst, um loszulegen.</p>
 
     <div class="provider-grid">
 
       <button type="button" class="provider-card spotify" onclick="startSpotifyLogin()">
-        <span class="provider-icon">&#9654;</span>
+        <span class="provider-icon">▶</span>
         <span class="provider-name">Spotify</span>
       </button>
 
       <button type="button" class="provider-card apple" disabled>
-        <span class="provider-icon">&#9835;</span>
+        <span class="provider-icon">♪</span>
         <span class="provider-name">Apple Music</span>
         <span class="coming-soon">Demnächst</span>
       </button>
 
       <button type="button" class="provider-card amazon" disabled>
-        <span class="provider-icon">&#9836;</span>
+        <span class="provider-icon">♬</span>
         <span class="provider-name">Amazon Music</span>
         <span class="coming-soon">Demnächst</span>
       </button>
