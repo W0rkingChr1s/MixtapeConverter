@@ -85,8 +85,12 @@
   const createBtn  = document.getElementById('create-btn');
 
   function updateCount() {
-    const n = trackList.querySelectorAll('.track-item').length;
-    countEl.textContent = n + ' Track' + (n === 1 ? '' : 's');
+    const items = trackList.querySelectorAll('.track-item');
+    countEl.textContent = items.length + ' Track' + (items.length === 1 ? '' : 's');
+    items.forEach((el, idx) => {
+      const num = el.querySelector('.track-num');
+      if (num) num.textContent = '[' + String(idx + 1).padStart(2, '0') + ']';
+    });
   }
 
   function makeItem(value) {
@@ -95,6 +99,7 @@
     li.draggable = true;
     li.innerHTML = `
       <span class="drag-handle">&#9776;</span>
+      <span class="track-num">[01]</span>
       <input type="text" class="track-input" value="${value.replace(/"/g, '&quot;')}">
       <button class="btn-icon" title="Löschen" onclick="this.closest('.track-item').remove(); updateCount();">&#10005;</button>`;
     return li;

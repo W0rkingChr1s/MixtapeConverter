@@ -252,6 +252,21 @@ code {
 
 .card-center { max-width: 520px; margin: 0 auto; text-align: center; }
 .card-wide   { max-width: 900px; }
+.card-flow   { max-width: 700px; margin: 0 auto; text-align: center; }
+
+
+/* Retro boot log (callback page) */
+.boot-log {
+  font-family: 'VT323', monospace;
+  font-size: 1rem;
+  color: var(--cyan);
+  text-align: left;
+  white-space: pre;
+  margin-top: 1rem;
+  opacity: .8;
+  min-height: 4.5rem;
+  letter-spacing: .05em;
+}
 
 
 /* ── Flash Messages ──────────────────────────────────────────────────────── */
@@ -505,6 +520,7 @@ textarea { resize: vertical; min-height: 160px; }
 
 .drag-handle { color: var(--purple); cursor: grab; padding: 0 .25rem; font-size: .9rem; user-select: none; }
 .drag-handle:active { cursor: grabbing; }
+.track-num  { font-family: 'VT323', monospace; font-size: 1rem; color: var(--purple); min-width: 2.8rem; opacity: .7; user-select: none; }
 
 .track-input {
   flex: 1;
