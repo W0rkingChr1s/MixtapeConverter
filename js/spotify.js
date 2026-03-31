@@ -165,10 +165,7 @@ async function _spotifyFetch(path, options = {}) {
 }
 
 async function createSpotifyPlaylist(name, tracks, onProgress) {
-  const me = await _spotifyFetch('/me');
-  if (!me.id) throw new Error('Spotify-Profil konnte nicht geladen werden.');
-
-  const playlist = await _spotifyFetch(`/users/${me.id}/playlists`, {
+  const playlist = await _spotifyFetch('/me/playlists', {
     method: 'POST',
     body:   JSON.stringify({
       name,
