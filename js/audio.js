@@ -6,7 +6,7 @@
 function _filenameToTrack(filename) {
   return filename
     .replace(/\.[^.]+$/, '')          // Extension entfernen
-    .replace(/^\d{1,2}[\s._\-]+/, '') // Führende Tracknummer entfernen (01_, 02-, …)
+    .replace(/^\d{1,2}[\s._-]+/, '')  // Führende Tracknummer entfernen (01_, 02-, …)
     .replace(/_/g, ' ')               // Unterstriche → Leerzeichen
     .trim();
 }

@@ -2,6 +2,7 @@
  * spotify.js – Spotify PKCE OAuth + Web API.
  * Kein Backend nötig – läuft komplett im Browser.
  */
+/* global State, CONFIG, BASE_PATH */
 
 // ── PKCE Helpers ──────────────────────────────────────────────────────────────
 
