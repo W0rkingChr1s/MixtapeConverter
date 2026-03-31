@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manuell eingeben – Mixtape Converter</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=VT323&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div class="ticker-bar" aria-hidden="true">
+  <div class="ticker-inner">
+    <span>★ MIXTAPE CONVERTER ★</span>
+    <span>◈ CONVERT YOUR CD COLLECTION ◈</span>
+    <span>★ SPOTIFY PLAYLIST GENERATOR ★</span>
+    <span>◈ OCR · AUDIO · MANUAL INPUT ◈</span>
+    <span>★ MIXTAPE CONVERTER ★</span>
+    <span>◈ CONVERT YOUR CD COLLECTION ◈</span>
+    <span>★ SPOTIFY PLAYLIST GENERATOR ★</span>
+    <span>◈ OCR · AUDIO · MANUAL INPUT ◈</span>
+  </div>
+</div>
+<header class="app-header">
+  <a href="index.html"><img src="static/Mixtape-Converter_logo.png" alt="Mixtape Converter" class="header-logo"></a>
+  <nav class="header-nav">
+    <span class="provider-badge">Spotify</span>
+    <a href="flow.html" class="nav-link">Zurück</a>
+  </nav>
+</header>
+
+<main class="main-content">
+  <div class="card">
+    <h1>Tracks manuell eingeben</h1>
+
+    <div class="input-section">
+      <label for="tracks-text">
+        Trackliste eingeben
+        <span class="hint">(ein Track pro Zeile, z.&nbsp;B. „Künstler – Titel")</span>
+      </label>
+      <textarea id="tracks-text" rows="12"
+        placeholder="Die Ärzte - Männer sind Schweine&#10;Depeche Mode - Personal Jesus&#10;Nirvana - Smells Like Teen Spirit&#10;…"></textarea>
+    </div>
+
+    <div class="divider"><span>oder</span></div>
+
+    <div class="input-section">
+      <label>TXT-Datei hochladen</label>
+      <label class="file-drop-area" id="file-label">
+        <span id="file-label-text">&#128194; Datei auswählen oder hierher ziehen</span>
+        <input type="file" id="txt-input" accept=".txt,text/plain" class="file-input-hidden">
+      </label>
+    </div>
+
+    <div id="error-msg" class="flash flash-error hidden"></div>
+
+    <div class="form-actions" style="margin-top:1.5rem">
+      <a href="flow.html" class="btn btn-secondary">Zurück</a>
+      <button type="button" class="btn btn-primary" onclick="proceed()">Weiter zur Bestätigung</button>
+    </div>
+  </div>
+</main>
+
+<footer class="app-footer"><a href="privacy.html">Datenschutzerklärung</a></footer>
+
+<script src="js/config.js"></script>
+<script src="js/state.js"></script>
+<script src="js/spotify.js"></script>
+<script>
+  requireAuth();
+
+  const txtInput   = document.getElementById('txt-input');
+  const fileLabel  = document.getElementById('file-label');
+  const fileLText  = document.getElementById('file-label-text');
+  const errorMsg   = document.getElementById('error-msg');
+
+  txtInput.addEventListener('change', () => {
+    if (txtInput.files[0]) {
+      fileLText.textContent = '✓ ' + txtInput.files[0].name;
+      fileLabel.classList.add('file-selected');
+    }
+  });
+
+  ['dragover','dragenter'].forEach(e =>
+    fileLabel.addEventListener(e, ev => { ev.preventDefault(); fileLabel.classList.add('drag-over'); }));
+  ['dragleave','drop'].forEach(e =>
+    fileLabel.addEventListener(e, () => fileLabel.classList.remove('drag-over')));
+  fileLabel.addEventListener('drop', e => {
+    e.preventDefault();
+    const f = e.dataTransfer.files[0];
+    if (f) {
+      const dt = new DataTransfer(); dt.items.add(f);
+      txtInput.files = dt.files;
+      fileLText.textContent = '✓ ' + f.name;
+      fileLabel.classList.add('file-selected');
+    }
+  });
+
+  async function proceed() {
+    errorMsg.classList.add('hidden');
+    let tracks = [];
+
+    if (txtInput.files[0]) {
+      const text = await txtInput.files[0].text();
+      tracks = text.split('\n').map(l => l.trim()).filter(Boolean);
+    }
+
+    if (!tracks.length) {
+      const raw = document.getElementById('tracks-text').value;
+      tracks = raw.split('\n').map(l => l.trim()).filter(Boolean);
+    }
+
+    if (!tracks.length) {
+      errorMsg.textContent = 'Bitte Tracks eingeben oder eine TXT-Datei hochladen.';
+      errorMsg.classList.remove('hidden');
+      return;
+    }
+
+    State.set('tracks', tracks);
+    window.location.href = 'confirm.html';
+  }
+</script>
+</body>
+</html>

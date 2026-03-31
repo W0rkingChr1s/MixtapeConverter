@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Booklet scannen – Mixtape Converter</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=VT323&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div class="ticker-bar" aria-hidden="true">
+  <div class="ticker-inner">
+    <span>★ MIXTAPE CONVERTER ★</span>
+    <span>◈ CONVERT YOUR CD COLLECTION ◈</span>
+    <span>★ SPOTIFY PLAYLIST GENERATOR ★</span>
+    <span>◈ OCR · AUDIO · MANUAL INPUT ◈</span>
+    <span>★ MIXTAPE CONVERTER ★</span>
+    <span>◈ CONVERT YOUR CD COLLECTION ◈</span>
+    <span>★ SPOTIFY PLAYLIST GENERATOR ★</span>
+    <span>◈ OCR · AUDIO · MANUAL INPUT ◈</span>
+  </div>
+</div>
+<header class="app-header">
+  <a href="index.html"><img src="static/Mixtape-Converter_logo.png" alt="Mixtape Converter" class="header-logo"></a>
+  <nav class="header-nav">
+    <span class="provider-badge">Spotify</span>
+    <a href="flow.html" class="nav-link">Zurück</a>
+  </nav>
+</header>
+
+<main class="main-content">
+  <div class="card">
+    <h1>Booklet oder Foto hochladen</h1>
+    <p class="subtitle">
+      Lade ein Foto oder einen PDF-Scan des CD-Booklets hoch.
+      Die Texterkennung (OCR) läuft direkt in deinem Browser – keine Daten werden hochgeladen.
+    </p>
+
+    <label class="file-drop-area file-drop-large" id="drop-zone">
+      <div class="file-drop-icon">&#128247;</div>
+      <div id="drop-label">
+        <strong>Datei auswählen oder hierher ziehen</strong><br>
+        <span class="hint">PNG, JPG, HEIC, WEBP, BMP, TIFF oder PDF · max. 50&nbsp;MB</span>
+      </div>
+      <input type="file" id="ocr-input" accept="image/*,.heic,.heif,.pdf" class="file-input-hidden">
+    </label>
+
+    <div id="preview-area" class="preview-area hidden"></div>
+
+    <div id="progress-area" class="progress-area hidden">
+      <div id="status-msg" class="status-msg">OCR wird gestartet…</div>
+      <div class="progress-bar-outer">
+        <div id="prog-bar" class="progress-bar-inner" style="width:0%"></div>
+      </div>
+      <div id="prog-label" class="progress-label"></div>
+    </div>
+
+    <div id="error-msg" class="flash flash-error hidden"></div>
+
+    <div class="form-actions" style="margin-top:1.5rem">
+      <a href="flow.html" class="btn btn-secondary">Zurück</a>
+      <button type="button" id="start-btn" class="btn btn-primary" disabled>OCR starten</button>
+    </div>
+  </div>
+
+  <div class="info-box" style="margin-top:1rem">
+    <strong>Tipps für gute Ergebnisse:</strong>
+    <ul>
+      <li>Hoher Kontrast – schwarzer Text auf weißem Hintergrund</li>
+      <li>Aufnahme gerade ausrichten (nicht schief fotografieren)</li>
+      <li>Mindestens 150 dpi / gute Smartphone-Kamera</li>
+      <li>OCR läuft lokal in deinem Browser – dauert je nach Gerät 10–30 Sekunden</li>
+    </ul>
+  </div>
+</main>
+
+<footer class="app-footer"><a href="privacy.html">Datenschutzerklärung</a></footer>
+
+<!-- libheif-js (self-hosted WASM bundle for HEIC/HEIF support) -->
+<!-- Shim: define module so the CommonJS bundle sets window.libheifInit -->
+<script>var module = { exports: {} }; var __dirname = '';</script>
+<script src="static/libheif-bundle.js"></script>
+<script>window.libheifInit = module.exports; module = undefined;</script>
+<!-- Tesseract.js + PDF.js via CDN -->
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/state.js"></script>
+<script src="js/spotify.js"></script>
+<script src="js/ocr.js"></script>
+<script>
+  requireAuth();
+
+  const dropZone  = document.getElementById('drop-zone');
+  const ocrInput  = document.getElementById('ocr-input');
+  const dropLabel = document.getElementById('drop-label');
+  const preview   = document.getElementById('preview-area');
+  const progArea  = document.getElementById('progress-area');
+  const statusMsg = document.getElementById('status-msg');
+  const progBar   = document.getElementById('prog-bar');
+  const progLabel = document.getElementById('prog-label');
+  const startBtn  = document.getElementById('start-btn');
+  const errorMsg  = document.getElementById('error-msg');
+
+  let selectedFile = null;
+
+  function setFile(f) {
+    selectedFile = f;
+    dropLabel.innerHTML = `<strong>✓ ${f.name}</strong><br>
+      <span class="hint">${(f.size / 1024 / 1024).toFixed(1)} MB · Klicken zum Ändern</span>`;
+    dropZone.classList.add('file-selected');
+    startBtn.disabled = false;
+
+    const isImg = f.type.startsWith('image/') || /\.(heic|heif|png|jpe?g|webp|bmp|tiff?)$/i.test(f.name);
+    if (isImg) {
+      // Use createObjectURL so native HEIC renders in Safari; fallback gracefully elsewhere
+      const url = URL.createObjectURL(f);
+      const img = new Image();
+      img.className = 'preview-img';
+      img.alt = 'Vorschau';
+      img.onload  = () => { preview.innerHTML = ''; preview.appendChild(img); preview.classList.remove('hidden'); };
+      img.onerror = () => { URL.revokeObjectURL(url); preview.innerHTML = '<p class="hint">Vorschau nicht verfügbar (HEIC)</p>'; preview.classList.remove('hidden'); };
+      img.src = url;
+    } else {
+      preview.classList.add('hidden');
+    }
+  }
+
+  ocrInput.addEventListener('change', () => { if (ocrInput.files[0]) setFile(ocrInput.files[0]); });
+  ['dragover','dragenter'].forEach(e => dropZone.addEventListener(e, ev => { ev.preventDefault(); dropZone.classList.add('drag-over'); }));
+  ['dragleave','drop'].forEach(e => dropZone.addEventListener(e, () => dropZone.classList.remove('drag-over')));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    const f = e.dataTransfer.files[0];
+    if (f) { const dt = new DataTransfer(); dt.items.add(f); ocrInput.files = dt.files; setFile(f); }
+  });
+
+  startBtn.addEventListener('click', async () => {
+    if (!selectedFile) return;
+    startBtn.disabled = true;
+    errorMsg.classList.add('hidden');
+    progArea.classList.remove('hidden');
+    statusMsg.textContent = 'OCR wird gestartet…';
+    progBar.style.width = '10%';
+
+    try {
+      let text = '';
+      const isPdf = selectedFile.name.toLowerCase().endsWith('.pdf') || selectedFile.type === 'application/pdf';
+
+      if (isPdf) {
+        statusMsg.textContent = 'PDF wird verarbeitet…';
+        text = await ocrPdf(selectedFile, (pct, page, total) => {
+          progBar.style.width = Math.round(10 + pct * 85) + '%';
+          progLabel.textContent = `Seite ${page} von ${total}`;
+        });
+      } else {
+        text = await ocrImage(
+          selectedFile,
+          pct => { progBar.style.width = Math.round(10 + pct * 85) + '%'; },
+          msg => { statusMsg.textContent = msg; },
+        );
+      }
+
+      progBar.style.width = '95%';
+      statusMsg.textContent = 'Text wird ausgewertet…';
+
+      const tracks = parseTrackList(text);
+      if (!tracks.length) {
+        errorMsg.textContent = 'Keine Tracks erkannt. Bitte manuell eingeben.';
+        errorMsg.classList.remove('hidden');
+        startBtn.disabled = false;
+        progArea.classList.add('hidden');
+        return;
+      }
+
+      progBar.style.width = '100%';
+      statusMsg.textContent = `${tracks.length} Tracks erkannt!`;
+      State.set('tracks', tracks);
+      setTimeout(() => window.location.href = 'confirm.html', 500);
+
+    } catch (err) {
+      const msg = err?.message ?? (typeof err === 'string' ? err : JSON.stringify(err));
+      console.error('[OCR]', err);
+      errorMsg.textContent = 'OCR-Fehler: ' + (msg || 'Unbekannter Fehler');
+      errorMsg.classList.remove('hidden');
+      startBtn.disabled = false;
+      progArea.classList.add('hidden');
+    }
+  });
+</script>
+</body>
+</html>

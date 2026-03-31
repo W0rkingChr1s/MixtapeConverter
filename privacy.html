@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Datenschutzerklärung – Mixtape Converter</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=VT323&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<header class="app-header">
+  <a href="index.html"><img src="static/Mixtape-Converter_logo.png" alt="Mixtape Converter" class="header-logo"></a>
+</header>
+
+<main class="main-content">
+  <div class="card">
+    <h1>Datenschutzerklärung</h1>
+
+    <h2>Grundsatz</h2>
+    <p>Mixtape Converter läuft vollständig in deinem Browser. Es gibt keinen eigenen Server, der Daten speichert.</p>
+
+    <h2>Welche Daten werden verarbeitet?</h2>
+    <ul>
+      <li><strong>Spotify-Token:</strong> Wird nach dem Login in deinem Browser-SessionStorage gespeichert und beim Schließen des Tabs automatisch gelöscht.</li>
+      <li><strong>Hochgeladene Dateien (Fotos, PDFs, Audio):</strong> Werden ausschließlich lokal in deinem Browser verarbeitet und nie an einen eigenen Server gesendet.</li>
+      <li><strong>OCR:</strong> Tesseract.js läuft lokal – Bildinhalte verlassen dein Gerät nicht.</li>
+      <li><strong>Spotify API:</strong> Suchanfragen und Playlist-Erstellung erfolgen direkt von deinem Browser an Spotify. Es gelten die <a href="https://www.spotify.com/de/legal/privacy-policy/" target="_blank" rel="noopener">Datenschutzbestimmungen von Spotify</a>.</li>
+    </ul>
+
+    <h2>Drittanbieter</h2>
+    <p>Für Bibliotheken (Tesseract.js, PDF.js, jsmediatags) werden CDN-Dienste von jsDelivr und Cloudflare genutzt. Diese können deine IP-Adresse beim Laden der Skripte sehen.</p>
+
+    <h2>Kontakt</h2>
+    <p>Fragen? <a href="mailto:privacy@mixtapeconverter.com">privacy@mixtapeconverter.com</a></p>
+
+    <div style="margin-top:2rem">
+      <a href="index.html" class="btn btn-secondary">Zurück zur Startseite</a>
+    </div>
+  </div>
+</main>
+
+<footer class="app-footer">
+  <a href="privacy.html">Datenschutzerklärung</a>
+</footer>
+
+</body>
+</html>

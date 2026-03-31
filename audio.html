@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Audio-Dateien – Mixtape Converter</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=VT323&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div class="ticker-bar" aria-hidden="true">
+  <div class="ticker-inner">
+    <span>★ MIXTAPE CONVERTER ★</span>
+    <span>◈ CONVERT YOUR CD COLLECTION ◈</span>
+    <span>★ SPOTIFY PLAYLIST GENERATOR ★</span>
+    <span>◈ OCR · AUDIO · MANUAL INPUT ◈</span>
+    <span>★ MIXTAPE CONVERTER ★</span>
+    <span>◈ CONVERT YOUR CD COLLECTION ◈</span>
+    <span>★ SPOTIFY PLAYLIST GENERATOR ★</span>
+    <span>◈ OCR · AUDIO · MANUAL INPUT ◈</span>
+  </div>
+</div>
+<header class="app-header">
+  <a href="index.html"><img src="static/Mixtape-Converter_logo.png" alt="Mixtape Converter" class="header-logo"></a>
+  <nav class="header-nav">
+    <span class="provider-badge">Spotify</span>
+    <a href="flow.html" class="nav-link">Zurück</a>
+  </nav>
+</header>
+
+<main class="main-content">
+  <div class="card">
+    <h1>Audio-Dateien hochladen</h1>
+    <p class="subtitle">
+      Rippe deine CD mit einem beliebigen Tool und lade die Dateien hier hoch.
+      ID3-Tags (Künstler&nbsp;/ Titel) werden automatisch ausgelesen.
+    </p>
+
+    <label class="file-drop-area file-drop-large" id="drop-zone">
+      <div class="file-drop-icon">&#127925;</div>
+      <div id="drop-label">
+        <strong>Dateien auswählen oder hierher ziehen</strong><br>
+        <span class="hint">MP3, FLAC, WAV, M4A, AAC, OGG · mehrere Dateien gleichzeitig</span>
+      </div>
+      <input type="file" id="audio-input"
+             accept=".mp3,.flac,.wav,.m4a,.aac,.ogg,.wma,.opus"
+             multiple class="file-input-hidden">
+    </label>
+
+    <ul id="file-list" class="file-preview-list hidden"></ul>
+
+    <div id="progress-area" class="progress-area hidden">
+      <div id="status-msg" class="status-msg">Tags werden gelesen…</div>
+      <div class="progress-bar-outer">
+        <div id="prog-bar" class="progress-bar-inner" style="width:0%"></div>
+      </div>
+    </div>
+
+    <div class="form-actions" style="margin-top:1.5rem">
+      <a href="flow.html" class="btn btn-secondary">Zurück</a>
+      <button type="button" id="start-btn" class="btn btn-primary" disabled>Tags auslesen &amp; weiter</button>
+    </div>
+  </div>
+
+  <div class="info-box" style="margin-top:1rem">
+    <strong>Tipp:</strong>
+    <ul>
+      <li>MP3 oder FLAC statt WAV empfohlen (WAV = ~700 MB/CD)</li>
+      <li>Dateien nach Track-Nummer benennen (01.mp3, 02.mp3&nbsp;…)</li>
+      <li>CD-Ripper wie <em>fre:ac</em>, <em>EAC</em> oder <em>iTunes</em> schreiben automatisch ID3-Tags</li>
+    </ul>
+  </div>
+</main>
+
+<footer class="app-footer"><a href="privacy.html">Datenschutzerklärung</a></footer>
+
+<!-- jsmediatags für ID3-Lesezugriff -->
+<script src="https://cdn.jsdelivr.net/npm/jsmediatags@3.9.5/dist/jsmediatags.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/state.js"></script>
+<script src="js/spotify.js"></script>
+<script src="js/audio.js"></script>
+<script>
+  requireAuth();
+
+  const dropZone  = document.getElementById('drop-zone');
+  const input     = document.getElementById('audio-input');
+  const dropLabel = document.getElementById('drop-label');
+  const fileList  = document.getElementById('file-list');
+  const startBtn  = document.getElementById('start-btn');
+  const progArea  = document.getElementById('progress-area');
+  const statusMsg = document.getElementById('status-msg');
+  const progBar   = document.getElementById('prog-bar');
+
+  let selectedFiles = [];
+
+  function showFiles(files) {
+    selectedFiles = Array.from(files).sort((a, b) =>
+      a.name.localeCompare(b.name, undefined, { numeric: true })
+    );
+    fileList.innerHTML = '';
+    selectedFiles.forEach((f, i) => {
+      const li = document.createElement('li');
+      li.className = 'file-preview-item';
+      li.innerHTML = `<span class="file-num">${i + 1}</span>
+                      <span class="file-name">${f.name}</span>
+                      <span class="file-size">${(f.size / 1024 / 1024).toFixed(1)} MB</span>`;
+      fileList.appendChild(li);
+    });
+    fileList.classList.toggle('hidden', !selectedFiles.length);
+    startBtn.disabled = !selectedFiles.length;
+    if (selectedFiles.length) {
+      dropLabel.innerHTML = `<strong>✓ ${selectedFiles.length} Datei${selectedFiles.length > 1 ? 'en' : ''} ausgewählt</strong>
+        <br><span class="hint">Klicken zum Ändern</span>`;
+      dropZone.classList.add('file-selected');
+    }
+  }
+
+  input.addEventListener('change', () => showFiles(input.files));
+  ['dragover','dragenter'].forEach(e => dropZone.addEventListener(e, ev => { ev.preventDefault(); dropZone.classList.add('drag-over'); }));
+  ['dragleave','drop'].forEach(e => dropZone.addEventListener(e, () => dropZone.classList.remove('drag-over')));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    const dt = new DataTransfer();
+    Array.from(e.dataTransfer.files).forEach(f => dt.items.add(f));
+    input.files = dt.files;
+    showFiles(dt.files);
+  });
+
+  startBtn.addEventListener('click', async () => {
+    startBtn.disabled = true;
+    progArea.classList.remove('hidden');
+    statusMsg.textContent = 'ID3-Tags werden gelesen…';
+    progBar.style.width = '30%';
+
+    const tracks = await readTracksFromFiles(selectedFiles);
+
+    progBar.style.width = '100%';
+    statusMsg.textContent = `${tracks.length} Tracks erkannt!`;
+
+    State.set('tracks', tracks);
+    setTimeout(() => window.location.href = 'confirm.html', 500);
+  });
+</script>
+</body>
+</html>
