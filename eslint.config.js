@@ -21,6 +21,7 @@ export default [
         DataTransfer:    'readonly',
         FileReader:      'readonly',
         File:            'readonly',
+        Image:           'readonly',
         TextEncoder:     'readonly',
         Promise:         'readonly',
         console:         'readonly',
@@ -30,7 +31,6 @@ export default [
         Tesseract:    'readonly',
         pdfjsLib:     'readonly',
         jsmediatags:  'readonly',
-        heic2any:     'readonly',
       },
     },
     rules: {
