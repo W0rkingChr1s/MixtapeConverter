@@ -11,6 +11,19 @@
 </head>
 <body>
 
+<div class="ticker-bar" aria-hidden="true">
+  <div class="ticker-inner">
+    <span>★ MIXTAPE CONVERTER ★</span>
+    <span>◈ CONVERT YOUR CD COLLECTION ◈</span>
+    <span>★ SPOTIFY PLAYLIST GENERATOR ★</span>
+    <span>◈ OCR · AUDIO · MANUAL INPUT ◈</span>
+    <span>★ MIXTAPE CONVERTER ★</span>
+    <span>◈ CONVERT YOUR CD COLLECTION ◈</span>
+    <span>★ SPOTIFY PLAYLIST GENERATOR ★</span>
+    <span>◈ OCR · AUDIO · MANUAL INPUT ◈</span>
+  </div>
+</div>
+
 <header class="app-header">
   <a href="index.html">
     <img src="static/Mixtape-Converter_logo.png" alt="Mixtape Converter" class="header-logo">
@@ -20,23 +33,40 @@
 <main class="main-content">
   <div class="card card-center">
     <div id="spinner" class="spinner"></div>
-    <h1 id="msg">Anmeldung wird abgeschlossen…</h1>
-    <p id="sub" class="subtitle"></p>
+    <h1 id="msg">CONNECTING…</h1>
+    <p id="sub" class="subtitle">Verbindung zu Spotify wird hergestellt</p>
+    <p id="boot" class="boot-log" aria-live="polite"></p>
   </div>
 </main>
+
+<footer class="app-footer"><a href="privacy.html">Datenschutzerklärung</a></footer>
 
 <script src="js/config.js"></script>
 <script src="js/state.js"></script>
 <script src="js/spotify.js"></script>
 <script>
+  // Retro boot-log lines
+  const bootEl = document.getElementById('boot');
+  const lines = [
+    '> INIT AUTH SEQUENCE',
+    '> VERIFYING TOKEN…',
+    '> HANDSHAKE OK',
+  ];
+  let i = 0;
+  const logInterval = setInterval(() => {
+    if (i < lines.length) { bootEl.textContent += lines[i++] + '\n'; }
+    else { clearInterval(logInterval); }
+  }, 600);
+
   (async () => {
     const params = new URLSearchParams(window.location.search);
     const code   = params.get('code');
     const error  = params.get('error');
 
     if (error) {
+      clearInterval(logInterval);
       document.getElementById('spinner').style.display = 'none';
-      document.getElementById('msg').textContent = 'Anmeldung fehlgeschlagen';
+      document.getElementById('msg').textContent = 'AUTH FAILED';
       document.getElementById('sub').textContent = error;
       setTimeout(() => window.location.href = 'index.html', 2500);
       return;
@@ -49,11 +79,15 @@
 
     const ok = await handleSpotifyCallback(code);
     if (ok) {
-      document.getElementById('msg').textContent = 'Erfolgreich angemeldet!';
+      clearInterval(logInterval);
+      bootEl.textContent += '> ACCESS GRANTED ★\n';
+      document.getElementById('msg').textContent = 'CONNECTED!';
+      document.getElementById('sub').textContent = '';
       window.location.href = 'flow.html';
     } else {
+      clearInterval(logInterval);
       document.getElementById('spinner').style.display = 'none';
-      document.getElementById('msg').textContent = 'Token-Fehler';
+      document.getElementById('msg').textContent = 'TOKEN ERROR';
       document.getElementById('sub').textContent = 'Bitte erneut versuchen.';
       setTimeout(() => window.location.href = 'index.html', 2500);
     }
