@@ -12,15 +12,51 @@ function _isHeic(file) {
     || /\.(heic|heif)$/i.test(file.name);
 }
 
+// Try native browser HEIC decode (Safari + Chrome on macOS natively support HEIC)
+function _convertHeicNative(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width  = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      canvas.getContext('2d').drawImage(img, 0, 0);
+      URL.revokeObjectURL(url);
+      canvas.toBlob(blob => {
+        if (blob) {
+          resolve(new File([blob], file.name.replace(/\.(heic|heif)$/i, '.jpg'), { type: 'image/jpeg' }));
+        } else {
+          reject(new Error('Canvas-Export fehlgeschlagen'));
+        }
+      }, 'image/jpeg', 0.9);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Kein nativer HEIC-Support')); };
+    img.src = url;
+  });
+}
+
 async function _convertHeicToJpeg(file) {
-  if (typeof heic2any === 'undefined') {
-    throw new Error('HEIC-Unterstützung konnte nicht geladen werden. Bitte das Foto vorher in JPG umwandeln.');
+  // 1. Native browser decode (Safari, Chrome ≥108 on macOS)
+  try {
+    console.log('[OCR] HEIC: versuche nativen Browser-Decode…');
+    return await _convertHeicNative(file);
+  } catch (_) { /* weiter zu heic2any */ }
+
+  // 2. heic2any WebAssembly fallback
+  if (typeof heic2any !== 'undefined') {
+    try {
+      console.log('[OCR] HEIC: versuche heic2any…');
+      const blob = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.9 });
+      const single = Array.isArray(blob) ? blob[0] : blob;
+      return new File([single], file.name.replace(/\.(heic|heif)$/i, '.jpg'), { type: 'image/jpeg' });
+    } catch (_) { /* weiter zum Fehler */ }
   }
-  console.log('[OCR] HEIC erkannt – konvertiere zu JPEG…');
-  const blob = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.9 });
-  // heic2any kann ein Array zurückgeben (Multi-Frame)
-  const single = Array.isArray(blob) ? blob[0] : blob;
-  return new File([single], file.name.replace(/\.(heic|heif)$/i, '.jpg'), { type: 'image/jpeg' });
+
+  throw new Error(
+    'HEIC-Datei konnte nicht verarbeitet werden. ' +
+    'Bitte das Foto als JPG speichern: iPhone Einstellungen → Kamera → Format → "Maximale Kompatibilität".'
+  );
 }
 
 // ── OCR ───────────────────────────────────────────────────────────────────────

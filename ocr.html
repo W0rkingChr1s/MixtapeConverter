@@ -13,14 +13,14 @@
 
 <div class="ticker-bar" aria-hidden="true">
   <div class="ticker-inner">
-    <span>2605 MIXTAPE CONVERTER 2605</span>
-    <span>25c8 CONVERT YOUR CD COLLECTION 25c8</span>
-    <span>2605 SPOTIFY PLAYLIST GENERATOR 2605</span>
-    <span>25c8 OCR 00b7 AUDIO 00b7 MANUAL INPUT 25c8</span>
-    <span>2605 MIXTAPE CONVERTER 2605</span>
-    <span>25c8 CONVERT YOUR CD COLLECTION 25c8</span>
-    <span>2605 SPOTIFY PLAYLIST GENERATOR 2605</span>
-    <span>25c8 OCR 00b7 AUDIO 00b7 MANUAL INPUT 25c8</span>
+    <span>★ MIXTAPE CONVERTER ★</span>
+    <span>◈ CONVERT YOUR CD COLLECTION ◈</span>
+    <span>★ SPOTIFY PLAYLIST GENERATOR ★</span>
+    <span>◈ OCR · AUDIO · MANUAL INPUT ◈</span>
+    <span>★ MIXTAPE CONVERTER ★</span>
+    <span>◈ CONVERT YOUR CD COLLECTION ◈</span>
+    <span>★ SPOTIFY PLAYLIST GENERATOR ★</span>
+    <span>◈ OCR · AUDIO · MANUAL INPUT ◈</span>
   </div>
 </div>
 <header class="app-header">
@@ -112,12 +112,14 @@
 
     const isImg = f.type.startsWith('image/') || /\.(heic|heif|png|jpe?g|webp|bmp|tiff?)$/i.test(f.name);
     if (isImg) {
-      const reader = new FileReader();
-      reader.onload = e => {
-        preview.innerHTML = `<img src="${e.target.result}" class="preview-img" alt="Vorschau">`;
-        preview.classList.remove('hidden');
-      };
-      reader.readAsDataURL(f);
+      // Use createObjectURL so native HEIC renders in Safari; fallback gracefully elsewhere
+      const url = URL.createObjectURL(f);
+      const img = new Image();
+      img.className = 'preview-img';
+      img.alt = 'Vorschau';
+      img.onload  = () => { preview.innerHTML = ''; preview.appendChild(img); preview.classList.remove('hidden'); };
+      img.onerror = () => { URL.revokeObjectURL(url); preview.innerHTML = '<p class="hint">Vorschau nicht verfügbar (HEIC)</p>'; preview.classList.remove('hidden'); };
+      img.src = url;
     } else {
       preview.classList.add('hidden');
     }
