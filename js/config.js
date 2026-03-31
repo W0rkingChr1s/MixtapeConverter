@@ -10,6 +10,6 @@ const BASE_PATH = (() => {
 
 const CONFIG = {
   SPOTIFY_CLIENT_ID: 'b816b42cd02043d4bab939320364ac36',
-  SPOTIFY_SCOPES: 'playlist-modify-public playlist-modify-private',
+  SPOTIFY_SCOPES: 'playlist-modify-public playlist-modify-private user-read-private',
   REDIRECT_URI: BASE_PATH + 'callback.html',
 };
