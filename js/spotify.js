@@ -140,18 +140,32 @@ async function _spotifyFetch(path, options = {}) {
 
   // Surface Spotify API errors as thrown errors with clear messages
   if (json.error) {
-    const msg = json.error.message || ('HTTP ' + json.error.status);
-    throw new Error('Spotify API: ' + msg);
+    const status = json.error.status;
+    const msg    = json.error.message || '';
+
+    if (status === 401) {
+      throw new Error('Sitzung abgelaufen – bitte neu anmelden.');
+    }
+    if (status === 403) {
+      throw new Error(
+        'Zugriff verweigert (403). ' +
+        'Die Spotify-App läuft im Entwicklermodus – ' +
+        'nur freigeschaltete Nutzer können sie verwenden. ' +
+        'Bitte die Spotify-E-Mail-Adresse im Developer Dashboard unter ' +
+        '"User Management" hinzufügen oder Extended Quota Mode beantragen.'
+      );
+    }
+    if (status === 429) {
+      throw new Error('Spotify Rate Limit erreicht – bitte kurz warten und erneut versuchen.');
+    }
+    throw new Error('Spotify API Fehler ' + status + (msg ? ': ' + msg : ''));
   }
 
   return json;
 }
 
 async function createSpotifyPlaylist(name, tracks, onProgress) {
-  const me = await _spotifyFetch('/me');
-  if (!me.id) throw new Error('Spotify-Profil konnte nicht geladen werden.');
-
-  const playlist = await _spotifyFetch(`/users/${me.id}/playlists`, {
+  const playlist = await _spotifyFetch('/me/playlists', {
     method: 'POST',
     body:   JSON.stringify({
       name,
