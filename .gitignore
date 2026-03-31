@@ -1,16 +1,26 @@
 # Credentials - NEVER commit
 .env
+.env.example
 *.p8
 *.pem
+
+# Python legacy (removed from project)
+*.py
+*.ui
+__pycache__/
+*.pyc
+*.pyo
+requirements.txt
+services/
+templates/
+dependencies/
+static/styles.css
 
 # Temp files
 uploads/
 tmp/
 ripped_tracks/
 temp_track_*.wav
-__pycache__/
-*.pyc
-*.pyo
 
 # Cache
 .cache
