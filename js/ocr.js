@@ -93,7 +93,7 @@ function parseTrackList(text) {
     .map(l => l.replace(timeRe, '').trim())
     .filter(l => l.length >= 3);
 
-  let tracks = [];
+  const tracks = [];
 
   // Pass 1: nummerierte Zeilen  → "01. Artist - Title"
   for (const line of lines) {
