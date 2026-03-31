@@ -1,15 +1,46 @@
 /**
  * ocr.js – Tesseract.js OCR für Bilder + PDF.js für PDFs.
  * Beide Libraries werden per CDN geladen.
+ * HEIC/HEIF (iPhone) wird automatisch via heic2any nach JPEG konvertiert.
  */
+
+// ── HEIC-Konvertierung ────────────────────────────────────────────────────────
+
+function _isHeic(file) {
+  return file.type === 'image/heic'
+    || file.type === 'image/heif'
+    || /\.(heic|heif)$/i.test(file.name);
+}
+
+async function _convertHeicToJpeg(file) {
+  if (typeof heic2any === 'undefined') {
+    throw new Error('HEIC-Unterstützung konnte nicht geladen werden. Bitte das Foto vorher in JPG umwandeln.');
+  }
+  console.log('[OCR] HEIC erkannt – konvertiere zu JPEG…');
+  const blob = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.9 });
+  // heic2any kann ein Array zurückgeben (Multi-Frame)
+  const single = Array.isArray(blob) ? blob[0] : blob;
+  return new File([single], file.name.replace(/\.(heic|heif)$/i, '.jpg'), { type: 'image/jpeg' });
+}
 
 // ── OCR ───────────────────────────────────────────────────────────────────────
 
-async function ocrImage(file, onProgress) {
+async function ocrImage(file, onProgress, onStatus) {
+  let processFile = file;
+
+  if (_isHeic(file)) {
+    if (onStatus) onStatus('HEIC wird zu JPEG konvertiert…');
+    processFile = await _convertHeicToJpeg(file);
+  }
+
+  if (onStatus) onStatus('OCR wird gestartet…');
   const worker = await Tesseract.createWorker(['deu', 'eng'], 1, {
-    logger: m => { if (onProgress && m.status === 'recognizing text') onProgress(m.progress); },
+    logger: m => {
+      console.log('[Tesseract]', m.status, m.progress);
+      if (onProgress && m.status === 'recognizing text') onProgress(m.progress);
+    },
   });
-  const { data: { text } } = await worker.recognize(file);
+  const { data: { text } } = await worker.recognize(processFile);
   await worker.terminate();
   return text;
 }

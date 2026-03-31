@@ -28,9 +28,9 @@
       <div class="file-drop-icon">&#128247;</div>
       <div id="drop-label">
         <strong>Datei auswählen oder hierher ziehen</strong><br>
-        <span class="hint">PNG, JPG, WEBP, BMP, TIFF oder PDF · max. 50&nbsp;MB</span>
+        <span class="hint">PNG, JPG, HEIC, WEBP, BMP, TIFF oder PDF · max. 50&nbsp;MB</span>
       </div>
-      <input type="file" id="ocr-input" accept="image/*,.pdf" class="file-input-hidden">
+      <input type="file" id="ocr-input" accept="image/*,.heic,.heif,.pdf" class="file-input-hidden">
     </label>
 
     <div id="preview-area" class="preview-area hidden"></div>
@@ -64,9 +64,10 @@
 
 <footer class="app-footer"><a href="privacy.html">Datenschutzerklärung</a></footer>
 
-<!-- Tesseract.js + PDF.js via CDN -->
+<!-- Tesseract.js + PDF.js + heic2any (HEIC/iPhone-Fotos) via CDN -->
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
 <script src="js/config.js"></script>
 <script src="js/state.js"></script>
 <script src="js/spotify.js"></script>
@@ -94,7 +95,8 @@
     dropZone.classList.add('file-selected');
     startBtn.disabled = false;
 
-    if (f.type.startsWith('image/')) {
+    const isImg = f.type.startsWith('image/') || /\.(heic|heif|png|jpe?g|webp|bmp|tiff?)$/i.test(f.name);
+    if (isImg) {
       const reader = new FileReader();
       reader.onload = e => {
         preview.innerHTML = `<img src="${e.target.result}" class="preview-img" alt="Vorschau">`;
@@ -134,10 +136,11 @@
           progLabel.textContent = `Seite ${page} von ${total}`;
         });
       } else {
-        statusMsg.textContent = 'Bild wird erkannt…';
-        text = await ocrImage(selectedFile, pct => {
-          progBar.style.width = Math.round(10 + pct * 85) + '%';
-        });
+        text = await ocrImage(
+          selectedFile,
+          pct => { progBar.style.width = Math.round(10 + pct * 85) + '%'; },
+          msg => { statusMsg.textContent = msg; },
+        );
       }
 
       progBar.style.width = '95%';
@@ -158,7 +161,9 @@
       setTimeout(() => window.location.href = 'confirm.html', 500);
 
     } catch (err) {
-      errorMsg.textContent = 'OCR-Fehler: ' + err.message;
+      const msg = err?.message ?? (typeof err === 'string' ? err : JSON.stringify(err));
+      console.error('[OCR]', err);
+      errorMsg.textContent = 'OCR-Fehler: ' + (msg || 'Unbekannter Fehler');
       errorMsg.classList.remove('hidden');
       startBtn.disabled = false;
       progArea.classList.add('hidden');
