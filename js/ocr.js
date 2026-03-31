@@ -1,7 +1,6 @@
 /**
  * ocr.js – Tesseract.js OCR für Bilder + PDF.js für PDFs.
- * Beide Libraries werden per CDN geladen.
- * HEIC/HEIF (iPhone) wird automatisch via heic2any nach JPEG konvertiert.
+ * HEIC/HEIF (iPhone) wird via libheif-js (self-hosted WASM) dekodiert.
  */
 
 // ── HEIC-Konvertierung ────────────────────────────────────────────────────────
@@ -12,7 +11,7 @@ function _isHeic(file) {
     || /\.(heic|heif)$/i.test(file.name);
 }
 
-// Try native browser HEIC decode (Safari + Chrome on macOS natively support HEIC)
+// Decode with native browser canvas (works in Safari + Chrome on macOS natively)
 function _convertHeicNative(file) {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);
@@ -36,28 +35,67 @@ function _convertHeicNative(file) {
   });
 }
 
-async function _convertHeicToJpeg(file) {
-  // 1. Native browser decode (Safari, Chrome ≥108 on macOS)
-  try {
-    console.log('[OCR] HEIC: versuche nativen Browser-Decode…');
-    return await _convertHeicNative(file);
-  } catch (_) { /* weiter zu heic2any */ }
+// Decode with libheif-js WASM (works cross-platform, self-hosted bundle)
+async function _convertHeicLibheif(file) {
+  if (typeof window.libheifInit === 'undefined') {
+    throw new Error('libheif nicht geladen');
+  }
+  const lh = await window.libheifInit();
+  const buffer = await file.arrayBuffer();
+  const decoder = new lh.HeifDecoder();
+  const images = decoder.decode(new Uint8Array(buffer));
+  if (!images || images.length === 0) throw new Error('Keine Bilder im HEIC-File');
 
-  // 2. heic2any WebAssembly fallback
-  if (typeof heic2any !== 'undefined') {
-    try {
-      console.log('[OCR] HEIC: versuche heic2any…');
-      const blob = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.9 });
-      const single = Array.isArray(blob) ? blob[0] : blob;
-      return new File([single], file.name.replace(/\.(heic|heif)$/i, '.jpg'), { type: 'image/jpeg' });
-    } catch (_) { /* weiter zum Fehler */ }
+  const image = images[0];
+  const width  = image.get_width();
+  const height = image.get_height();
+
+  const canvas  = document.createElement('canvas');
+  canvas.width  = width;
+  canvas.height = height;
+  const ctx     = canvas.getContext('2d');
+  const imgData = ctx.createImageData(width, height);
+
+  await new Promise((resolve, reject) => {
+    image.display(imgData, result => {
+      if (!result) { reject(new Error('libheif display() fehlgeschlagen')); return; }
+      ctx.putImageData(result, 0, 0);
+      resolve();
+    });
+  });
+
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(blob => {
+      if (blob) {
+        resolve(new File([blob], file.name.replace(/\.(heic|heif)$/i, '.jpg'), { type: 'image/jpeg' }));
+      } else {
+        reject(new Error('Canvas-Export fehlgeschlagen'));
+      }
+    }, 'image/jpeg', 0.9);
+  });
+}
+
+async function _convertHeicToJpeg(file) {
+  // 1. Native browser decode (Safari, Chrome on macOS)
+  try {
+    console.log('[OCR] HEIC: nativer Browser-Decode…');
+    return await _convertHeicNative(file);
+  } catch (e1) { console.log('[OCR] Nativer Decode fehlgeschlagen:', e1.message); }
+
+  // 2. libheif-js WASM (cross-platform fallback)
+  try {
+    console.log('[OCR] HEIC: libheif WASM-Decode…');
+    return await _convertHeicLibheif(file);
+  } catch (e) {
+    console.warn('[OCR] libheif fehlgeschlagen:', e.message);
   }
 
   throw new Error(
-    'HEIC-Datei konnte nicht verarbeitet werden. ' +
-    'Bitte das Foto als JPG speichern: iPhone Einstellungen → Kamera → Format → "Maximale Kompatibilität".'
+    'HEIC konnte nicht gelesen werden. Bitte als JPG speichern: ' +
+    'iPhone Einstellungen → Kamera → Format → "Maximale Kompatibilität".'
   );
 }
+
 
 // ── OCR ───────────────────────────────────────────────────────────────────────
 
