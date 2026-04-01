@@ -197,7 +197,7 @@ function parseTrackList(text) {
   // Strip all common time/duration formats from end of line:
   //   6:47  |  (3:37)  |  ( 3:37 )  |  [6:47]
   const stripTime = s => s
-    .replace(/\s*[\[(]\s*\d{1,2}:\d{2}(?::\d{2})?\s*[\])]\s*$/, '')
+    .replace(/\s*[[|(]\s*\d{1,2}:\d{2}(?::\d{2})?\s*[\])]\s*$/, '')
     .replace(/\s*\d{1,2}:\d{2}(?::\d{2})?\s*$/, '')
     .trim();
 
@@ -233,7 +233,7 @@ function parseTrackList(text) {
   // Pass 1: Numbered lines
   // Handles: "1." "01." "1)" "01)" "1 -" "01 -" "Track 1"
   // Also handles dual-numbering "01 1." (e.g. Symphoniker: "01 1. Prologue & Tango")
-  const numberedRe = /^(?:track\s*)?\d{1,2}(?:[.):\-]\s*|\s+)(?:\d{1,2}[.):\s]\s*)?(.+)$/i;
+  const numberedRe = /^(?:track\s*)?\d{1,2}(?:[.):]\s*|-\s*|\s+)(?:\d{1,2}[.):\s]\s*)?(.+)$/i;
   // Roman numerals I–XIII
   const romanRe    = /^(?:XI{0,3}|IX|VIII|VII|VI|V|IV|III|II|I)[.):\s]\s*(.+)$/i;
 

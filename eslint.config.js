@@ -15,6 +15,7 @@ export default [
         fetch:           'readonly',
         crypto:          'readonly',
         sessionStorage:  'readonly',
+        localStorage:    'readonly',
         URL:             'readonly',
         URLSearchParams: 'readonly',
         FormData:        'readonly',
