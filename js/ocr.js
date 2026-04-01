@@ -107,13 +107,17 @@ async function ocrImage(file, onProgress, onStatus) {
     processFile = await _convertHeicToJpeg(file);
   }
 
+  if (onStatus) onStatus('Bild wird vorverarbeitet…');
+  processFile = await _preprocessForOcr(processFile);
+
   if (onStatus) onStatus('OCR wird gestartet…');
   const worker = await Tesseract.createWorker(['deu', 'eng'], 1, {
     logger: m => {
-      console.log('[Tesseract]', m.status, m.progress);
       if (onProgress && m.status === 'recognizing text') onProgress(m.progress);
     },
   });
+  // PSM 6 = single uniform text block — better than auto for CD booklets
+  await worker.setParameters({ tessedit_pageseg_mode: '6' });
   const { data: { text } } = await worker.recognize(processFile);
   await worker.terminate();
   return text;
@@ -157,32 +161,84 @@ async function ocrPdf(file, onProgress) {
   return fullText;
 }
 
+// ── Bild-Preprocessing ────────────────────────────────────────────────────────
+
+// Scale small images up and boost contrast for better OCR on dark/dense covers
+function _preprocessForOcr(file) {
+  return new Promise(resolve => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const maxDim = Math.max(img.naturalWidth, img.naturalHeight);
+      // Scale up images below 1400px on longest edge (helps OCR on phone photos)
+      const scale = maxDim < 1400 ? Math.min(2.5, 1400 / maxDim) : 1;
+      const w = Math.round(img.naturalWidth  * scale);
+      const h = Math.round(img.naturalHeight * scale);
+      const canvas = document.createElement('canvas');
+      canvas.width  = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.filter = 'contrast(1.4) brightness(1.1) saturate(0)'; // greyscale + boost
+      ctx.drawImage(img, 0, 0, w, h);
+      canvas.toBlob(
+        blob => resolve(blob ? new File([blob], file.name, { type: 'image/jpeg' }) : file),
+        'image/jpeg', 0.95
+      );
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
+    img.src = url;
+  });
+}
+
 // ── Track-Parser ──────────────────────────────────────────────────────────────
 
 function parseTrackList(text) {
-  const timeRe     = /\s*\d{1,2}:\d{2}(?::\d{2})?\s*$/;
-  const numberedRe = /^\d{1,2}\s*[.):\s]\s*(.+)$/;
+  // Strip all common time/duration formats from end of line:
+  //   6:47  |  (3:37)  |  ( 3:37 )  |  [6:47]
+  const stripTime = s => s
+    .replace(/\s*[\[(]\s*\d{1,2}:\d{2}(?::\d{2})?\s*[\])]\s*$/, '')
+    .replace(/\s*\d{1,2}:\d{2}(?::\d{2})?\s*$/, '')
+    .trim();
+
+  // Lines that are almost certainly not track titles
+  const noiseRe = /^(produc|produzier|record|aufgenomm|mixed|mastered|arranged|written|lyrics|music by|text by|℗|©|\(c\)|\(p\)|all rights|distributed|manufactured|www\.|https?:|instagram|facebook|twitter|total time|gesamtzeit|booklet|liner notes|artwork|design|photography|photo by|cover by|executive|assistant|label:|℗\s*\d{4}|made in|pressed|℗\s*&\s*©|publishing|courtesy of|℗ \+)/i;
 
   const lines = text.split('\n')
-    .map(l => l.replace(timeRe, '').trim())
-    .filter(l => l.length >= 3);
+    .map(l => stripTime(l.replace(/\s+/g, ' ').trim()))
+    .filter(l => {
+      if (l.length < 3 || l.length > 200) return false;
+      if (noiseRe.test(l)) return false;
+      // Skip lines that contain fewer than 2 letters (barcodes, ISRC, etc.)
+      const letters = (l.match(/[a-zA-ZäöüÄÖÜéèêàùûîôß]/g) || []).length;
+      return letters >= 2;
+    });
 
   const tracks = [];
 
-  // Pass 1: nummerierte Zeilen  → "01. Artist - Title"
-  for (const line of lines) {
-    const m = line.match(numberedRe);
-    if (m && m[1].trim().length >= 3) tracks.push(m[1].trim());
-  }
-  if (tracks.length) return tracks;
+  // Pass 1: Numbered lines
+  // Handles: "1." "01." "1)" "01)" "1 -" "01 -" "Track 1"
+  // Also handles dual-numbering "01 1." (e.g. Symphoniker: "01 1. Prologue & Tango")
+  const numberedRe = /^(?:track\s*)?\d{1,2}(?:[.):\-]\s*|\s+)(?:\d{1,2}[.):\s]\s*)?(.+)$/i;
+  // Roman numerals I–XIII
+  const romanRe    = /^(?:XI{0,3}|IX|VIII|VII|VI|V|IV|III|II|I)[.):\s]\s*(.+)$/i;
 
-  // Pass 2: "Artist – Title" ohne Nummer
   for (const line of lines) {
-    if (line.includes(' - ') && line.length >= 5 && line.length <= 150)
+    const m = line.match(numberedRe) || line.match(romanRe);
+    if (m) {
+      const title = m[1].trim();
+      if (title.length >= 3) tracks.push(title);
+    }
+  }
+  if (tracks.length >= 2) return tracks;
+
+  // Pass 2: "Artist – Title" or "Artist - Title" separator
+  for (const line of lines) {
+    if ((line.includes(' - ') || line.includes(' – ')) && line.length >= 5)
       tracks.push(line);
   }
-  if (tracks.length) return tracks;
+  if (tracks.length >= 2) return tracks;
 
-  // Pass 3: beliebige Zeilen als Fallback
-  return lines.filter(l => l.length >= 4 && l.length <= 150);
+  // Pass 3: All remaining non-noise lines as fallback
+  return lines.filter(l => l.length >= 4);
 }

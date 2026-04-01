@@ -404,6 +404,21 @@ textarea { resize: vertical; min-height: 160px; }
 .file-input-hidden         { display: none; }
 .preview-area              { margin: 1rem 0; text-align: center; }
 .preview-img               { max-width: 100%; max-height: 280px; border-radius: var(--r); border: 1px solid var(--border); box-shadow: var(--glow-m); }
+.raw-textarea {
+  width: 100%;
+  background: rgba(0,0,0,.5);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  color: var(--text);
+  font-family: 'VT323', monospace;
+  font-size: 1.05rem;
+  line-height: 1.5;
+  padding: .6rem .8rem;
+  resize: vertical;
+  box-sizing: border-box;
+  transition: border-color .2s;
+}
+.raw-textarea:focus { border-color: var(--cyan); outline: none; box-shadow: var(--glow-c); }
 
 .file-preview-list { list-style: none; display: flex; flex-direction: column; gap: .3rem; margin-top: 1rem; max-height: 260px; overflow-y: auto; }
 .file-preview-item { display: flex; align-items: center; gap: .75rem; background: rgba(0,0,0,.4); border: 1px solid var(--border); border-radius: var(--r); padding: .3rem .75rem; font-size: 1rem; }

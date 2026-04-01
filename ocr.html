@@ -60,7 +60,18 @@
 
     <div id="error-msg" class="flash flash-error hidden"></div>
 
-    <div class="form-actions" style="margin-top:1.5rem">
+    <div id="raw-area" class="hidden" style="margin-top:1.2rem">
+      <label for="raw-text" style="display:block;margin-bottom:.4rem;font-size:.85rem;color:var(--cyan);">
+        Erkannter Text – einen Track pro Zeile, nicht benötigte Zeilen entfernen:
+      </label>
+      <textarea id="raw-text" class="raw-textarea" rows="12" spellcheck="false"></textarea>
+      <div class="form-actions" style="margin-top:.8rem">
+        <a href="flow.html" class="btn btn-secondary">Zurück</a>
+        <button type="button" id="confirm-btn" class="btn btn-primary">Tracks übernehmen</button>
+      </div>
+    </div>
+
+    <div class="form-actions" id="start-actions" style="margin-top:1.5rem">
       <a href="flow.html" class="btn btn-secondary">Zurück</a>
       <button type="button" id="start-btn" class="btn btn-primary" disabled>OCR starten</button>
     </div>
@@ -102,8 +113,12 @@
   const statusMsg = document.getElementById('status-msg');
   const progBar   = document.getElementById('prog-bar');
   const progLabel = document.getElementById('prog-label');
-  const startBtn  = document.getElementById('start-btn');
-  const errorMsg  = document.getElementById('error-msg');
+  const startBtn   = document.getElementById('start-btn');
+  const startActs  = document.getElementById('start-actions');
+  const rawArea    = document.getElementById('raw-area');
+  const rawText    = document.getElementById('raw-text');
+  const confirmBtn = document.getElementById('confirm-btn');
+  const errorMsg   = document.getElementById('error-msg');
 
   let selectedFile = null;
 
@@ -168,18 +183,27 @@
       statusMsg.textContent = 'Text wird ausgewertet…';
 
       const tracks = parseTrackList(text);
-      if (!tracks.length) {
-        errorMsg.textContent = 'Keine Tracks erkannt. Bitte manuell eingeben.';
-        errorMsg.classList.remove('hidden');
-        startBtn.disabled = false;
-        progArea.classList.add('hidden');
-        return;
-      }
 
       progBar.style.width = '100%';
-      statusMsg.textContent = `${tracks.length} Tracks erkannt!`;
-      State.set('tracks', tracks);
-      setTimeout(() => window.location.href = 'confirm.html', 500);
+      statusMsg.textContent = tracks.length
+        ? `${tracks.length} Tracks erkannt – bitte prüfen:`
+        : 'Text erkannt – bitte Tracks manuell markieren:';
+
+      // Show raw-text editor so user can review/fix before proceeding
+      rawText.value = tracks.length ? tracks.join('\n') : text.trim();
+      rawArea.classList.remove('hidden');
+      startActs.classList.add('hidden');
+
+  confirmBtn.addEventListener('click', () => {
+    const tracks = rawText.value.split('\n').map(l => l.trim()).filter(l => l.length >= 2);
+    if (!tracks.length) {
+      errorMsg.textContent = 'Keine Tracks gefunden. Bitte mindestens einen Track eingeben.';
+      errorMsg.classList.remove('hidden');
+      return;
+    }
+    State.set('tracks', tracks);
+    window.location.href = 'confirm.html';
+  });
 
     } catch (err) {
       const msg = err?.message ?? (typeof err === 'string' ? err : JSON.stringify(err));
