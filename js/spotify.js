@@ -82,14 +82,25 @@ async function handleSpotifyCallback(code) {
     }),
   });
   const token = await resp.json();
-  if (token.access_token) {
-    token.expires_at = Date.now() + (token.expires_in - 60) * 1000;
-    State.set('spotify_token', token);
-    State.del('pkce_verifier');
-    return true;
+  if (!token.access_token) {
+    console.error('Spotify token error:', token);
+    return false;
   }
-  console.error('Spotify token error:', token);
-  return false;
+
+  // Verify Spotify actually granted the scopes we need
+  const granted  = (token.scope || '').split(' ');
+  const required = CONFIG.SPOTIFY_SCOPES.split(' ');
+  const missing  = required.filter(s => !granted.includes(s));
+  if (missing.length) {
+    console.error('Spotify: fehlende Scopes:', missing);
+    // Store token anyway so we can show an error on the next page
+    token._missing_scopes = missing;
+  }
+
+  token.expires_at = Date.now() + (token.expires_in - 60) * 1000;
+  State.set('spotify_token', token);
+  State.del('pkce_verifier');
+  return true;
 }
 
 function isAuthenticated() {

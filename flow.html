@@ -70,6 +70,23 @@
 <script src="js/config.js"></script>
 <script src="js/state.js"></script>
 <script src="js/spotify.js"></script>
-<script>requireAuth();</script>
+<script>
+  requireAuth();
+  // Show warning if Spotify didn't grant all required scopes (Development Mode restriction)
+  (function () {
+    const token = State.get('spotify_token');
+    if (token && token._missing_scopes && token._missing_scopes.length) {
+      const warn = document.createElement('div');
+      warn.className = 'scope-warning';
+      warn.innerHTML =
+        '<strong>&#9888; Spotify Entwicklermodus-Einschränkung</strong><br>' +
+        'Fehlende Berechtigungen: <code>' + token._missing_scopes.join(', ') + '</code><br>' +
+        'Die App läuft im Entwicklermodus. Gehe zum ' +
+        '<a href="https://developer.spotify.com/dashboard" target="_blank" rel="noopener">Spotify Developer Dashboard</a> ' +
+        '→ Deine App → <em>User Management</em> und füge deine Spotify-E-Mail-Adresse hinzu.';
+      document.querySelector('.card-flow').prepend(warn);
+    }
+  })();
+</script>
 </body>
 </html>

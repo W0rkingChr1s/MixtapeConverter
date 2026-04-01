@@ -254,6 +254,21 @@ code {
 .card-wide   { max-width: 900px; }
 .card-flow   { max-width: 700px; margin: 0 auto; text-align: center; }
 
+/* Scope / permission warning banner */
+.scope-warning {
+  background: rgba(247, 230, 66, 0.08);
+  border: 1px solid var(--yellow);
+  border-radius: 6px;
+  color: var(--yellow);
+  font-size: .9rem;
+  line-height: 1.5;
+  margin-bottom: 1.5rem;
+  padding: .85rem 1rem;
+  text-align: left;
+}
+.scope-warning a    { color: var(--cyan); }
+.scope-warning code { background: rgba(0,0,0,.3); border-radius: 3px; padding: 0 .3em; }
+
 
 /* Retro boot log (callback page) */
 .boot-log {
