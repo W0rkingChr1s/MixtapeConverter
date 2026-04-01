@@ -240,7 +240,7 @@ function parseTrackList(text) {
   for (const line of lines) {
     const m = line.match(numberedRe) || line.match(romanRe);
     if (m) {
-      const title = m[1].trim();
+      const title = _cleanTrack(m[1].trim());
       if (title.length >= 3) tracks.push(title);
     }
   }
@@ -249,10 +249,20 @@ function parseTrackList(text) {
   // Pass 2: "Artist – Title" or "Artist - Title" separator
   for (const line of lines) {
     if ((line.includes(' - ') || line.includes(' – ')) && line.length >= 5)
-      tracks.push(line);
+      tracks.push(_cleanTrack(line));
   }
   if (tracks.length >= 2) return tracks;
 
   // Pass 3: All remaining non-noise lines as fallback
-  return lines.filter(l => l.length >= 4);
+  return lines.filter(l => l.length >= 4).map(_cleanTrack).filter(l => l.length >= 2);
+}
+
+// Strip trailing OCR artefacts from a track title
+// e.g. "BREATHLESS (==)" → "BREATHLESS", "ROSETTA. :" → "ROSETTA", "COMEBACK =" → "COMEBACK"
+function _cleanTrack(t) {
+  return t
+    .replace(/\s*\([=\-~_*]+\)\s*$/, '')       // (==) (---) etc.
+    .replace(/\s*[=\-:·•,;]+\s*$/, '')          // trailing = - : · , ;
+    .replace(/\s*\.\s*$/, '')                    // trailing period
+    .trim();
 }
