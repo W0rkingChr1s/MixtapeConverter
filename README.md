@@ -1,3 +1,8 @@
+> **Projekt eingestellt**
+> Spotify verlangt seit Ende 2024 eine Unternehmens-Registrierung sowie ein aktives Premium-Abo auf dem Developer-Account, um die Web API öffentlich zu betreiben. Als Privatperson ist das nicht umsetzbar. Der Code bleibt als Referenz erhalten und kann mit einer eigenen Spotify-App selbst gehostet werden – siehe [Setup](#setup).
+
+---
+
 <div align="center">
   <img src="static/logo.svg" alt="Mixtape Converter Logo" width="260">
 
