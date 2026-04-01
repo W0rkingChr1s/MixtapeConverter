@@ -147,6 +147,13 @@ async function _spotifyFetch(path, options = {}) {
 
   if (resp.status === 204) return {};
 
+  // Guard against non-JSON responses (Spotify occasionally returns HTML/text on errors)
+  const ct = resp.headers.get('content-type') || '';
+  if (!ct.includes('application/json')) {
+    const text = await resp.text();
+    throw new Error('Spotify antwortete mit ungültigem Format (HTTP ' + resp.status + '): ' + text.slice(0, 120));
+  }
+
   const json = await resp.json();
 
   // Surface Spotify API errors as thrown errors with clear messages
