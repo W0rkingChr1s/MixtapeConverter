@@ -116,8 +116,8 @@ async function ocrImage(file, onProgress, onStatus) {
       if (onProgress && m.status === 'recognizing text') onProgress(m.progress);
     },
   });
-  // PSM 3 = auto (detects columns/layout) — better than 6 for multi-column backcovers
-  await worker.setParameters({ tessedit_pageseg_mode: '3' });
+  // PSM 6 = single uniform text block — works best for CD backcovers
+  await worker.setParameters({ tessedit_pageseg_mode: '6' });
   const { data: { text } } = await worker.recognize(processFile);
   await worker.terminate();
   return text;
