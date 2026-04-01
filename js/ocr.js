@@ -116,8 +116,8 @@ async function ocrImage(file, onProgress, onStatus) {
       if (onProgress && m.status === 'recognizing text') onProgress(m.progress);
     },
   });
-  // PSM 6 = single uniform text block — better than auto for CD booklets
-  await worker.setParameters({ tessedit_pageseg_mode: '6' });
+  // PSM 3 = auto (detects columns/layout) — better than 6 for multi-column backcovers
+  await worker.setParameters({ tessedit_pageseg_mode: '3' });
   const { data: { text } } = await worker.recognize(processFile);
   await worker.terminate();
   return text;
@@ -202,17 +202,31 @@ function parseTrackList(text) {
     .trim();
 
   // Lines that are almost certainly not track titles
-  const noiseRe = /^(produc|produzier|record|aufgenomm|mixed|mastered|arranged|written|lyrics|music by|text by|℗|©|\(c\)|\(p\)|all rights|distributed|manufactured|www\.|https?:|instagram|facebook|twitter|total time|gesamtzeit|booklet|liner notes|artwork|design|photography|photo by|cover by|executive|assistant|label:|℗\s*\d{4}|made in|pressed|℗\s*&\s*©|publishing|courtesy of|℗ \+)/i;
+  const noiseRe = /^(produc|produzier|co-produc|record|aufgenomm|mixed|mastered|arranged|written|lyrics|music by|text by|℗|©|\(c\)|\(p\)|all rights|distributed|manufactured|marketed|www\.|https?:|instagram|facebook|twitter|total time|gesamtzeit|booklet|liner notes|artwork|design|photography|photo by|cover by|executive|assistant|label:|made in|pressed|publishing|courtesy of|℗ \+|fbi|anti.piracy|unauthorized\s+cop|punishable|federal law|suite\s+\d|\w+\s+records\s+release|inc\.|llc\.|gmbh|nashville|℗\s*\d{4})/i;
 
-  const lines = text.split('\n')
+  const rawLines = text.split('\n')
     .map(l => stripTime(l.replace(/\s+/g, ' ').trim()))
     .filter(l => {
       if (l.length < 3 || l.length > 200) return false;
       if (noiseRe.test(l)) return false;
-      // Skip lines that contain fewer than 2 letters (barcodes, ISRC, etc.)
       const letters = (l.match(/[a-zA-ZäöüÄÖÜéèêàùûîôß]/g) || []).length;
-      return letters >= 2;
+      if (letters < 2) return false;
+      // Skip lines with too many single-char "words" — likely column-bleed artefacts
+      const words = l.split(/\s+/);
+      const shortWords = words.filter(w => w.length <= 1).length;
+      if (words.length >= 3 && shortWords / words.length > 0.4) return false;
+      return true;
     });
+
+  // Merge "featuring …" / "feat. …" subtitle lines into the preceding track
+  const lines = [];
+  for (const l of rawLines) {
+    if (/^feat(?:uring)?\.?\s+/i.test(l) && lines.length > 0) {
+      lines[lines.length - 1] += ' ' + l;
+    } else {
+      lines.push(l);
+    }
+  }
 
   const tracks = [];
 
