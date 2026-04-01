@@ -151,6 +151,15 @@ async function _spotifyFetch(path, options = {}) {
   const ct = resp.headers.get('content-type') || '';
   if (!ct.includes('application/json')) {
     const text = await resp.text();
+    // Detect known plain-text Spotify errors and surface them clearly
+    if (resp.status === 403 && /premium/i.test(text)) {
+      throw new Error(
+        'Spotify Premium erforderlich (403): Der Spotify-Account, ' +
+        'dem die Developer-App gehört, benötigt ein aktives Premium-Abo. ' +
+        'Bitte auf premium.spotify.com upgraden – die Änderung kann bis zu ' +
+        'einige Stunden dauern um zu greifen.'
+      );
+    }
     throw new Error('Spotify antwortete mit ungültigem Format (HTTP ' + resp.status + '): ' + text.slice(0, 120));
   }
 
@@ -165,6 +174,15 @@ async function _spotifyFetch(path, options = {}) {
       throw new Error('Sitzung abgelaufen – bitte neu anmelden.');
     }
     if (status === 403) {
+      // Premium required on the developer account (since late 2024)
+      if (/premium/i.test(msg)) {
+        throw new Error(
+          'Spotify Premium erforderlich (403): Der Spotify-Account, ' +
+          'dem die Developer-App gehört, benötigt ein aktives Premium-Abo. ' +
+          'Bitte auf premium.spotify.com upgraden – die Änderung kann bis zu ' +
+          'einige Stunden dauern um zu greifen.'
+        );
+      }
       throw new Error(
         'Zugriff verweigert (403). ' +
         'Die Spotify-App läuft im Entwicklermodus – ' +
