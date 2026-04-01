@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 290 62" role="img" aria-label="Mixtape Converter">
+  <defs>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="1.8" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glow-sm" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="1" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- ── Cassette body ─────────────────────────────────────────── -->
+  <rect x="2" y="5" width="68" height="50" rx="4" ry="4"
+        fill="transparent" stroke="#ff2d78" stroke-width="1.6"
+        filter="url(#glow)"/>
+
+  <!-- label window (inner rect) -->
+  <rect x="10" y="11" width="52" height="22" rx="2"
+        fill="none" stroke="#c724f0" stroke-width="0.9" opacity="0.7"/>
+
+  <!-- label text -->
+  <text x="36" y="26" text-anchor="middle"
+        font-family="'Courier New',Courier,monospace" font-size="7" font-weight="700"
+        letter-spacing="1" fill="#c724f0" opacity="0.9">MC-001</text>
+
+  <!-- tape slot (bottom of cassette) -->
+  <rect x="18" y="37" width="36" height="4" rx="1"
+        fill="none" stroke="#8060a0" stroke-width="0.8"/>
+
+  <!-- Left reel -->
+  <circle cx="22" cy="43" r="9" fill="none" stroke="#00f5d4" stroke-width="1.3"
+          filter="url(#glow-sm)"/>
+  <circle cx="22" cy="43" r="3.5" fill="#00f5d4" filter="url(#glow-sm)"/>
+  <line x1="22" y1="36" x2="22" y2="34.5" stroke="#00f5d4" stroke-width="1"/>
+  <line x1="29" y1="43" x2="30.5" y2="43" stroke="#00f5d4" stroke-width="1"/>
+  <line x1="15" y1="43" x2="13.5" y2="43" stroke="#00f5d4" stroke-width="1"/>
+
+  <!-- Right reel -->
+  <circle cx="50" cy="43" r="9" fill="none" stroke="#00f5d4" stroke-width="1.3"
+          filter="url(#glow-sm)"/>
+  <circle cx="50" cy="43" r="3.5" fill="#00f5d4" filter="url(#glow-sm)"/>
+  <line x1="50" y1="36" x2="50" y2="34.5" stroke="#00f5d4" stroke-width="1"/>
+  <line x1="57" y1="43" x2="58.5" y2="43" stroke="#00f5d4" stroke-width="1"/>
+  <line x1="43" y1="43" x2="41.5" y2="43" stroke="#00f5d4" stroke-width="1"/>
+
+  <!-- ── Text ──────────────────────────────────────────────────── -->
+  <!-- MIXTAPE -->
+  <text x="82" y="30"
+        font-family="'Courier New',Courier,monospace"
+        font-weight="700" font-size="24" letter-spacing="3.5"
+        fill="#ff2d78" filter="url(#glow)">MIXTAPE</text>
+
+  <!-- CONVERTER -->
+  <text x="84" y="50"
+        font-family="'Courier New',Courier,monospace"
+        font-weight="400" font-size="12" letter-spacing="9"
+        fill="#00f5d4" filter="url(#glow-sm)">CONVERTER</text>
+</svg>

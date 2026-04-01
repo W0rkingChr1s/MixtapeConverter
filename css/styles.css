@@ -24,6 +24,58 @@
   --glow-m:      0 0 10px #c724f0, 0 0 28px rgba(199,36,240,0.45);
 }
 
+/* ── Light Theme ─────────────────────────────────────────────────────────── */
+html.light {
+  --bg:          #f2eeff;
+  --surface:     #e8e0f8;
+  --card:        #ffffff;
+  --card-hover:  #f5f0ff;
+  --pink:        #c40062;
+  --cyan:        #007a6b;
+  --yellow:      #8a6800;
+  --purple:      #7b00cc;
+  --text:        #160025;
+  --muted:       #6040a0;
+  --border:      rgba(140,0,200,0.3);
+  --border-c:    rgba(0,130,110,0.3);
+  --glow-p:      0 0 4px rgba(196,0,98,0.35);
+  --glow-c:      0 0 4px rgba(0,122,107,0.35);
+  --glow-m:      0 0 6px rgba(123,0,204,0.3);
+}
+
+html.light body {
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(rgba(140,0,200,.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(140,0,200,.05) 1px, transparent 1px),
+    radial-gradient(ellipse at 50% 0%, rgba(140,0,200,.08) 0%, transparent 55%),
+    radial-gradient(ellipse at 100% 100%, rgba(0,122,107,.05) 0%, transparent 45%);
+}
+
+html.light body::after { display: none; } /* no CRT scanlines in light mode */
+
+html.light .app-header {
+  background: rgba(242,238,255,.85);
+  border-bottom-color: rgba(140,0,200,0.25);
+}
+
+html.light .header-logo {
+  filter: drop-shadow(0 0 4px rgba(196,0,98,.4)) brightness(0.88);
+}
+
+html.light .ticker-bar {
+  background: var(--pink);
+}
+
+html.light .card {
+  background: var(--card);
+  border-color: rgba(140,0,200,0.25);
+}
+
+html.light .boot-log { color: var(--cyan); }
+
+html.light h1 { text-shadow: none; animation: none; color: var(--pink); }
+
 /* ── Animations ──────────────────────────────────────────────────────────── */
 @keyframes neon-flicker {
   0%,18%,22%,25%,53%,57%,100% {
@@ -147,6 +199,8 @@ body::after {
 .nav-link:hover      { color: var(--cyan); text-shadow: var(--glow-c); text-decoration: none; }
 .nav-link-logout     { color: var(--pink); }
 .nav-link-logout:hover { color: var(--pink); text-shadow: var(--glow-p); }
+.theme-btn { font-size: 1.2rem; padding: 0 .2rem; opacity: .75; }
+.theme-btn:hover { opacity: 1; color: var(--yellow); text-shadow: none; }
 
 .provider-badge {
   background: transparent;

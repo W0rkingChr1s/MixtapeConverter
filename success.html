@@ -2,6 +2,7 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
+  <script>(function(){if(localStorage.getItem('mc_theme')==='light')document.documentElement.classList.add('light');}());</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Playlist erstellt! – Mixtape Converter</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -24,9 +25,10 @@
   </div>
 </div>
 <header class="app-header">
-  <a href="index.html"><img src="static/Mixtape-Converter_logo.png" alt="Mixtape Converter" class="header-logo"></a>
+  <a href="index.html"><img src="static/logo.svg" alt="Mixtape Converter" class="header-logo"></a>
   <nav class="header-nav">
     <span class="provider-badge">Spotify</span>
+    <button type="button" id="theme-btn" class="nav-link theme-btn" onclick="toggleTheme()" aria-label="Helles Theme">◐</button>
   </nav>
 </header>
 
@@ -86,5 +88,6 @@
       <a href="index.html" class="btn btn-secondary">Zurück zum Start</a>
     </div>`;
 </script>
+<script src="js/theme.js"></script>
 </body>
 </html>
